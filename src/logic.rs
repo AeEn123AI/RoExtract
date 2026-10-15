@@ -41,8 +41,6 @@ static REQUEST_REPAINT: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(fals
 static PROGRESS: LazyLock<Mutex<f32>> = LazyLock::new(|| Mutex::new(1.0));
 // Only one listing runs at a time; starting another stops it.
 static LISTING: LazyLock<Mutex<Listing>> = LazyLock::new(|| Mutex::new(Listing::default()));
-static FILTERED_FILE_LIST: LazyLock<Mutex<Arc<Vec<AssetInfo>>>> =
-    LazyLock::new(|| Mutex::new(Arc::new(Vec::new())));
 static TASK_RUNNING: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false)); // Delete/extract
 
 // CLI stuff
@@ -679,30 +677,6 @@ pub fn copy_assets(asset_a: AssetInfo, asset_b: AssetInfo) {
     }
 }
 
-pub fn filter_file_list(category: Category, query: String) {
-    let query_lower = query.to_lowercase();
-    let file_list = get_file_list(category); // Snapshot (Arc refcount bump)
-
-    // Match case-insensitively on name and alias; collect once and assign under
-    // a single lock rather than locking per match.
-    let filtered: Vec<AssetInfo> = file_list
-        .iter()
-        .filter(|file| {
-            file.name.to_lowercase().contains(&query_lower)
-                || config::get_asset_alias(&file.name)
-                    .to_lowercase()
-                    .contains(&query_lower)
-        })
-        .cloned()
-        .collect();
-
-    *FILTERED_FILE_LIST.lock().unwrap() = Arc::new(filtered);
-}
-
-pub fn get_filtered_file_list() -> Arc<Vec<AssetInfo>> {
-    FILTERED_FILE_LIST.lock().unwrap().clone()
-}
-
 pub fn create_asset_info(asset: &str, category: Category) -> AssetInfo {
     if let Some(info) = sql_database::create_asset_info(asset, category) {
         return info;
@@ -806,6 +780,16 @@ pub fn get_file_list(category: Category) -> Arc<Vec<AssetInfo>> {
         .unwrap_or_default()
 }
 
+/// Changes whenever the list for `category` does.
+pub fn get_file_list_generation(category: Category) -> u64 {
+    FILE_LISTS
+        .lock()
+        .unwrap()
+        .get(&category)
+        .map(|file_list| file_list.generation)
+        .unwrap_or(0)
+}
+
 /// True once a listing of `category` ran to completion.
 pub fn is_list_loaded(category: Category) -> bool {
     FILE_LISTS
@@ -858,6 +842,7 @@ mod tests {
 
         // Take a snapshot, then mutate the live list.
         let snapshot = get_file_list(Category::Music);
+        let generation = get_file_list_generation(Category::Music);
         assert_eq!(snapshot.len(), 1);
         update_file_list(Category::Music, dummy_asset("banana"), false);
 
@@ -866,6 +851,7 @@ mod tests {
         assert_eq!(snapshot[0].name, "apple");
         let live = get_file_list(Category::Music);
         assert_eq!(live.len(), 2);
+        assert_ne!(get_file_list_generation(Category::Music), generation);
         // The write should have copied-on-write to a fresh allocation.
         assert!(!Arc::ptr_eq(&snapshot, &live));
 

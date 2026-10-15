@@ -211,6 +211,30 @@ enum EditMode {
 //     datetime.format("%Y-%m-%d %H:%M").to_string()
 // }
 
+/// Assets whose name or alias contains `query` (lowercase), case-insensitively.
+fn filter_assets(assets: &[AssetInfo], query: &str) -> Vec<AssetInfo> {
+    assets
+        .iter()
+        .filter(|asset| {
+            asset.name.to_lowercase().contains(query)
+                || config::get_asset_alias(&asset.name)
+                    .to_lowercase()
+                    .contains(query)
+        })
+        .cloned()
+        .collect()
+}
+
+/// The rows shown: the category's list, filtered by the search query.
+/// Rebuilt only when the list or the query changes.
+#[derive(Default)]
+struct ListView {
+    category: Option<logic::Category>,
+    generation: u64,
+    query: String,
+    assets: Arc<Vec<AssetInfo>>,
+}
+
 pub struct FileListUi {
     selected: Option<usize>, // Used for storing selected state to retain keyboard navigation as seen in the tkinter version
     current_tab: Option<String>, // Allows for detecting when the user changes tabs to refresh automatically
@@ -221,6 +245,7 @@ pub struct FileListUi {
     swapping_asset: Option<logic::AssetInfo>,
     asset_context_menu_open: Option<usize>,
     copying: bool,
+    view: ListView,
     pending_edit_mode: Option<(dialog::Pending<bool>, EditMode, Option<AssetInfo>)>, // Waiting on the ban warning
     pub locale: FluentBundle<Arc<FluentResource>>,
 }
@@ -271,6 +296,35 @@ impl FileListUi {
         self.swapping = enabled && matches!(mode, EditMode::Swap);
         self.copying = enabled && matches!(mode, EditMode::Copy);
         self.swapping_asset = if enabled { asset } else { None };
+    }
+
+    /// The rows to show for `category`, filtered when searching.
+    fn update_view(&mut self, category: logic::Category) -> Arc<Vec<AssetInfo>> {
+        let generation = logic::get_file_list_generation(category);
+        let query = if self.searching {
+            self.search_query.to_lowercase()
+        } else {
+            String::new()
+        };
+
+        if self.view.category != Some(category)
+            || self.view.generation != generation
+            || self.view.query != query
+        {
+            let assets = logic::get_file_list(category);
+            let assets = if query.is_empty() {
+                assets // Unfiltered, share the snapshot
+            } else {
+                Arc::new(filter_assets(&assets, &query))
+            };
+            self.view = ListView {
+                category: Some(category),
+                generation,
+                query,
+                assets,
+            };
+        }
+        self.view.assets.clone()
     }
 
     fn poll_pending_edit_mode(&mut self) {
@@ -506,11 +560,12 @@ impl FileListUi {
 
         self.poll_pending_edit_mode();
 
-        let file_list = logic::get_file_list(category);
+        let file_list = self.update_view(category);
 
         let mut focus_search_box = false; // Focus the search box toggle for this frame
 
-        let file_list_is_empty = file_list.is_empty() && !logic::is_listing(category);
+        let file_list_is_empty =
+            logic::get_file_list(category).is_empty() && !logic::is_listing(category);
 
         // Handle key shortcuts here
         if ui.input(|i| i.key_pressed(egui::Key::F2)) {
@@ -636,8 +691,6 @@ impl FileListUi {
         }
 
         let file_list = if self.searching {
-            let old_search_query = self.search_query.clone();
-
             let response = ui.text_edit_singleline(&mut self.search_query);
 
             if focus_search_box {
@@ -648,10 +701,7 @@ impl FileListUi {
                 self.searching = false; // Remove the search bar when the use presses escape
             }
 
-            if self.search_query != old_search_query {
-                logic::filter_file_list(category, self.search_query.clone());
-            }
-            logic::get_filtered_file_list()
+            self.update_view(category) // The query may have changed
         } else {
             file_list
         };
@@ -1008,7 +1058,35 @@ impl Default for FileListUi {
             locale: locale::get_locale(None),
             asset_context_menu_open: None,
             copying: false,
+            view: ListView::default(),
             pending_edit_mode: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn asset(name: &str) -> AssetInfo {
+        AssetInfo {
+            name: name.to_owned(),
+            _size: 0,
+            last_modified: None,
+            from_file: true,
+            from_sql: false,
+            from_rbx_storage: false,
+            category: logic::Category::Sounds,
+        }
+    }
+
+    #[test]
+    fn test_filter_assets_matches_name_case_insensitively() {
+        let assets = vec![asset("Apple"), asset("banana"), asset("pineapple")];
+        let filtered = filter_assets(&assets, "app");
+        let names: Vec<_> = filtered.iter().map(|a| a.name.as_str()).collect();
+        assert_eq!(names, ["Apple", "pineapple"]);
+        assert!(filter_assets(&assets, "cherry").is_empty());
+        assert_eq!(filter_assets(&assets, "").len(), 3);
     }
 }
