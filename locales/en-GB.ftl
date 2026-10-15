@@ -37,6 +37,14 @@ button-extract-file = Extract <Ctrl+E>
 button-display-image-preview = Display image previews
 button-disable-display-image-preview = Stop displaying image previews
 input-preview-size = Preview size
+button-reset-columns = Reset columns
+
+# Table columns
+column-name = Name
+column-type = Type
+column-size = Size
+column-created = Created
+column-modified = Modified
 
 # Confirmations
 confirmation-generic-confirmation-title = Confirmation

@@ -57,8 +57,11 @@ pub enum Category {
 #[derive(Debug, Clone)]
 pub struct AssetInfo {
     pub name: String,
-    pub _size: u64,
+    pub size: u64,
     pub last_modified: Option<SystemTime>,
+    pub created: Option<SystemTime>,
+    /// File extension of the detected format, e.g. "png". None if unknown.
+    pub format: Option<&'static str>,
     pub from_file: bool,
     pub from_sql: bool,
     pub from_rbx_storage: bool,
@@ -183,6 +186,26 @@ fn find_header(category: Category, bytes: &[u8]) -> Result<String, String> {
         }
     }
     Err("Headers not found in bytes".to_owned())
+}
+
+/// The file extension for a header found by `find_header`.
+fn header_extension(header: &str) -> &'static str {
+    match header {
+        "OggS" => "ogg",
+        "ID3" => "mp3",
+        "PNG" => "png",
+        "WEBP" => "webp",
+        "KTX" => "ktx",
+        "<roblox!" => "rbxm",
+        _ => "ogg",
+    }
+}
+
+/// The format of an asset from its first bytes, as a file extension.
+pub fn detect_format(category: Category, bytes: &[u8]) -> Option<&'static str> {
+    find_header(category, bytes)
+        .ok()
+        .map(|header| header_extension(&header))
 }
 
 fn extract_bytes(header: &str, bytes: Vec<u8>) -> Vec<u8> {
@@ -387,17 +410,7 @@ pub fn extract_to_file(
         Ok(header) => {
             // Add the extension if needed
             if add_extension {
-                let extension = match header.as_str() {
-                    "OggS" => "ogg",
-                    "ID3" => "mp3",
-                    "PNG" => "png",
-                    "WEBP" => "webp",
-                    "KTX" => "ktx",
-                    "<roblox!" => "rbxm",
-                    _ => "ogg",
-                };
-
-                destination.set_extension(extension);
+                destination.set_extension(header_extension(&header));
             }
 
             extract_bytes(&header, bytes) // Extract between the header to the end of the file.
@@ -689,8 +702,10 @@ pub fn create_asset_info(asset: &str, category: Category) -> AssetInfo {
     // Asset doesn't exist, but info is needed anyways
     AssetInfo {
         name: asset.to_string(),
-        _size: 0,
+        size: 0,
         last_modified: None,
+        created: None,
+        format: None,
         from_file: false,
         from_sql: false,
         from_rbx_storage: false,
@@ -822,8 +837,10 @@ mod tests {
     fn dummy_asset(name: &str) -> AssetInfo {
         AssetInfo {
             name: name.to_owned(),
-            _size: 0,
+            size: 0,
             last_modified: None,
+            created: None,
+            format: None,
             from_file: true,
             from_sql: false,
             from_rbx_storage: false,
@@ -935,6 +952,15 @@ mod tests {
         let id3 = all.iter().filter(|&&h| h == "ID3").count();
         assert_eq!(oggs, 1);
         assert_eq!(id3, 1);
+    }
+
+    #[test]
+    fn test_detect_format() {
+        assert_eq!(detect_format(Category::Images, b"\x89PNG\r\n"), Some("png"));
+        assert_eq!(detect_format(Category::Music, b"ID3\x04"), Some("mp3"));
+        assert_eq!(detect_format(Category::Sounds, b"OggS\0"), Some("ogg"));
+        assert_eq!(detect_format(Category::All, b"<roblox!"), Some("rbxm"));
+        assert_eq!(detect_format(Category::Images, b"OggS"), None);
     }
 
     #[test]

@@ -13,6 +13,7 @@ about = 关于
 logs = 日志
 
 # Buttons
+button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
@@ -136,3 +137,9 @@ failed-opening-file = 错误：打开文件失败
 error-extracting-file = 错误：提取失败，原因：{ $error }
 error-check-logs = 错误，请检查日志
 failed-not-file = 错误 '{ $file }' 不是文件
+
+column-size = Size # TODO: Translate
+column-type = Type # TODO: Translate
+column-modified = Modified # TODO: Translate
+column-name = Name # TODO: Translate
+column-created = Created # TODO: Translate

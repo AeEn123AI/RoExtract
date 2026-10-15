@@ -13,6 +13,7 @@ about = aobut
 logs = loges
 
 # Buttons
+button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
@@ -138,3 +139,9 @@ failed-opening-file = error: fiaeldw to wopen fiel
 error-extracting-file = rror: fialed to aextract beucase { $error }
 error-check-logs = eroror hcekc logs
 failed-not-file = error '{ $file }' not a fiele
+
+column-size = Size # TODO: Translate
+column-type = Type # TODO: Translate
+column-modified = Modified # TODO: Translate
+column-name = Name # TODO: Translate
+column-created = Created # TODO: Translate

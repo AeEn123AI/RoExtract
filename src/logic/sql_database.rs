@@ -245,18 +245,22 @@ pub fn refresh(
                     });
 
                     if header_found {
+                        // Determine category if all
+                        let detected_category = if category == logic::Category::All {
+                            logic::determine_category(&bytes)
+                        } else {
+                            category
+                        };
                         Ok(logic::AssetInfo {
                             name: hex::encode(row.get::<_, Vec<u8>>(0)?),
-                            _size: row.get(1)?,
+                            size: row.get(1)?,
                             last_modified,
+                            created: None,
+                            format: logic::detect_format(detected_category, &bytes),
                             from_file: false,
                             from_sql: true,
                             from_rbx_storage: false,
-                            category: if category == logic::Category::All {
-                                logic::determine_category(&bytes)
-                            } else {
-                                category
-                            }, // Determine category if all
+                            category: detected_category,
                         })
                     } else {
                         Err(rusqlite::Error::InvalidQuery) // Return error for this asset as it doesn't match
@@ -333,8 +337,10 @@ pub fn create_asset_info(asset: &str, category: logic::Category) -> Option<logic
 
                 Ok(logic::AssetInfo {
                     name: asset.to_string(),
-                    _size: row.get(1)?,
+                    size: row.get(1)?,
                     last_modified,
+                    created: None,
+                    format: None,
                     from_file: false,
                     from_sql: true,
                     from_rbx_storage: false,

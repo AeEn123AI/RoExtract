@@ -13,6 +13,7 @@ about = 'Bout This Vessel
 logs = Ship’s Log  
 
 # Buttons
+button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
@@ -138,3 +139,9 @@ update-changelog = See What’s New Below
 support-sponsor = ♥ Support the Crew  
 support-project-donate = ♥ Toss Some Coins in the Chest  
 setting-below-restart-required = Note: Changin’ this course requires a fresh start to take hold!  
+
+column-size = Size # TODO: Translate
+column-type = Type # TODO: Translate
+column-modified = Modified # TODO: Translate
+column-name = Name # TODO: Translate
+column-created = Created # TODO: Translate

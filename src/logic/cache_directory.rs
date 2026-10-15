@@ -16,48 +16,32 @@ const DEFAULT_DIRECTORIES: [&str; 2] = [
 
 static CACHE_DIRECTORY: LazyLock<Mutex<PathBuf>> = LazyLock::new(|| Mutex::new(detect_directory()));
 
-fn create_asset_info_unchecked(path: &PathBuf, category: logic::Category) -> logic::AssetInfo {
-    match path.file_name() {
-        Some(file_name) => match fs::metadata(path) {
-            Ok(metadata) => {
-                let size = metadata.len();
-                let last_modified = metadata.modified().ok();
-
-                logic::AssetInfo {
-                    name: file_name.to_string_lossy().to_string(),
-                    _size: size,
-                    last_modified,
-                    from_file: true,
-                    from_sql: false,
-                    from_rbx_storage: false,
-                    category,
-                }
-            }
-            Err(e) => {
-                log_warn!("Failed to get asset info: {}", e);
-                logic::AssetInfo {
-                    name: file_name.to_string_lossy().to_string(),
-                    _size: 0,
-                    last_modified: None,
-                    from_file: true,
-                    from_sql: false,
-                    from_rbx_storage: false,
-                    category,
-                }
-            }
-        },
+fn create_asset_info_unchecked(
+    path: &PathBuf,
+    category: logic::Category,
+    format: Option<&'static str>,
+) -> logic::AssetInfo {
+    let name = match path.file_name() {
+        Some(file_name) => file_name.to_string_lossy().to_string(),
         None => {
             log_warn!("Failed to get asset info: No filename");
-            logic::AssetInfo {
-                name: path.to_string_lossy().to_string(),
-                _size: 0,
-                last_modified: None,
-                from_file: true,
-                from_sql: false,
-                from_rbx_storage: false,
-                category,
-            }
+            path.to_string_lossy().to_string()
         }
+    };
+    let metadata = fs::metadata(path)
+        .map_err(|e| log_warn!("Failed to get asset info: {}", e))
+        .ok();
+
+    logic::AssetInfo {
+        name,
+        size: metadata.as_ref().map_or(0, |metadata| metadata.len()),
+        last_modified: metadata.as_ref().and_then(|m| m.modified().ok()),
+        created: metadata.as_ref().and_then(|m| m.created().ok()),
+        format,
+        from_file: true,
+        from_sql: false,
+        from_rbx_storage: false,
+        category,
     }
 }
 
@@ -274,34 +258,43 @@ pub fn refresh(
             let category = &category;
             move || -> std::io::Result<()> {
                 let path = entry?.path();
+                let mut file = fs::File::open(&path)?;
+
+                // Reading the first 2048 bytes of the file
+                let mut buffer = vec![0; 2048];
+                let bytes_read = file.read(&mut buffer)?;
+                buffer.truncate(bytes_read);
+
+                // Decompress asset data so asset detection works with zstd-compressed data.
+                let buffer = logic::maybe_decompress(buffer);
 
                 if category == &logic::Category::Music {
+                    // Everything in /sounds is music, no need to check headers
                     logic::update_file_list(
                         *category,
-                        create_asset_info_unchecked(&path, *category),
+                        create_asset_info_unchecked(
+                            &path,
+                            *category,
+                            logic::detect_format(*category, &buffer),
+                        ),
                         cli_list_mode,
                     );
                 } else {
-                    let mut file = fs::File::open(&path)?;
-
-                    // Reading the first 2048 bytes of the file
-                    let mut buffer = vec![0; 2048];
-                    let bytes_read = file.read(&mut buffer)?;
-                    buffer.truncate(bytes_read);
-
-                    // Decompress asset data so asset detection works with zstd-compressed data.
-                    let buffer = logic::maybe_decompress(buffer);
-
                     for header in headers {
                         // Check if header is not empty before actually checking file
                         if !header.is_empty() {
                             // Add it to the list if the header is inside of the file.
                             if logic::bytes_contains(&buffer, header.as_bytes()) {
-                                let asset_info = if *category == logic::Category::All {
-                                    create_asset_info_unchecked(&path, determine_category(&buffer))
+                                let detected_category = if *category == logic::Category::All {
+                                    determine_category(&buffer)
                                 } else {
-                                    create_asset_info_unchecked(&path, *category)
+                                    *category
                                 };
+                                let asset_info = create_asset_info_unchecked(
+                                    &path,
+                                    detected_category,
+                                    logic::detect_format(detected_category, &buffer),
+                                );
                                 logic::update_file_list(*category, asset_info, cli_list_mode);
                                 break; // Stop after the first match so a file isn't listed twice
                             }
@@ -374,7 +367,7 @@ pub fn create_asset_info(asset: &str, category: logic::Category) -> Option<logic
     let path = get_category_cache_directory(category).join(asset);
 
     if path.exists() {
-        Some(create_asset_info_unchecked(&path, category))
+        Some(create_asset_info_unchecked(&path, category, None))
     } else {
         None
     }

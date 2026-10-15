@@ -90,7 +90,7 @@ Fixed missing localisation files in English and German (Thanks to @Vonercent)
 - [ ] - Built-in media player to quickly preview sounds
 - [ ] - Ability to convert between formats
 - [ ] - Audio length in list
-- [ ] - Make it into a table with specific details e.g size, type, time created
+- [x] - Make it into a table with specific details e.g size, type, time created
 - [ ] - Wait for translations
 
 ## Future releases

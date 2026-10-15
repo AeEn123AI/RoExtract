@@ -12,6 +12,7 @@ settings = Ustawienia
 about = Informacje
 
 # Buttons
+button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
@@ -138,3 +139,9 @@ cache-directory = Katalog pamięci podręcznej: { $directory }
 welcome = Witamy
 download-update-question = Czy chcesz pobrać aktualizację?
 update-changelog = Lista zmian poniżej:
+
+column-size = Size # TODO: Translate
+column-type = Type # TODO: Translate
+column-modified = Modified # TODO: Translate
+column-name = Name # TODO: Translate
+column-created = Created # TODO: Translate

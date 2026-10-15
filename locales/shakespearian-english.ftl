@@ -13,6 +13,7 @@ about = Of This Matter
 logs = Chronicles  
 
 # Buttons
+button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate  
@@ -138,3 +139,9 @@ update-changelog = The Scroll of Changes Lies Below
 support-sponsor = ♥ A Patron Most Kind  
 support-project-donate = ♥ Bestow Thy Gift Upon This Labor  
 setting-below-restart-required = Take Heed! A Change in This Setting Shall Require a Restart for It to Take Hold.
+
+column-size = Size # TODO: Translate
+column-type = Type # TODO: Translate
+column-modified = Modified # TODO: Translate
+column-name = Name # TODO: Translate
+column-created = Created # TODO: Translate

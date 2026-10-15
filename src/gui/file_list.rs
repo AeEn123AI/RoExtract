@@ -6,6 +6,8 @@ use egui::Color32;
 // Used for functionality
 use fluent_bundle::{FluentBundle, FluentResource};
 use std::num::NonZero;
+
+mod table;
 use std::{
     sync::{Arc, LazyLock, Mutex},
     thread,
@@ -194,23 +196,6 @@ enum EditMode {
     Copy,
 }
 
-// fn format_size(bytes: u64) -> String {
-//     const UNITS: [&str; 4] = ["KB", "MB", "GB", "TB"];
-//     let mut size = bytes as f64 / 1024.0;
-//     let mut unit_idx = 0;
-
-//     while size >= 1024.0 && unit_idx < UNITS.len() - 1 {
-//         size /= 1024.0;
-//         unit_idx += 1;
-//     }
-//     format!("{:.1} {}", size, UNITS[unit_idx])
-// }
-
-// fn format_modified(time: std::time::SystemTime) -> String {
-//     let datetime: chrono::DateTime<chrono::Local> = time.into();
-//     datetime.format("%Y-%m-%d %H:%M").to_string()
-// }
-
 /// Assets whose name or alias contains `query` (lowercase), case-insensitively.
 fn filter_assets(assets: &[AssetInfo], query: &str) -> Vec<AssetInfo> {
     assets
@@ -225,13 +210,14 @@ fn filter_assets(assets: &[AssetInfo], query: &str) -> Vec<AssetInfo> {
         .collect()
 }
 
-/// The rows shown: the category's list, filtered by the search query.
-/// Rebuilt only when the list or the query changes.
+/// The rows shown: the category's list, filtered by the search query and sorted.
+/// Rebuilt only when the list, the query or the sort changes.
 #[derive(Default)]
 struct ListView {
     category: Option<logic::Category>,
     generation: u64,
     query: String,
+    sort: Option<table::Sort>,
     assets: Arc<Vec<AssetInfo>>,
 }
 
@@ -246,30 +232,10 @@ pub struct FileListUi {
     asset_context_menu_open: Option<usize>,
     copying: bool,
     view: ListView,
+    table: table::TableLayout,
     pending_edit_mode: Option<(dialog::Pending<bool>, EditMode, Option<AssetInfo>)>, // Waiting on the ban warning
     pub locale: FluentBundle<Arc<FluentResource>>,
 }
-// selected: Option<usize>, // Used for storing selected state to retain keyboard navigation as seen in the tkinter version
-// current_tab: Option<String>, // Allows for detecting when the user changes tabs to refresh automatically
-// renaming: bool,
-// searching: bool,
-// search_query: String,
-// swapping: bool,
-// swapping_asset: Option<logic::AssetInfo>,
-// asset_context_menu_open: Option<usize>,
-// copying: bool,
-
-// selected: &'a mut Option<usize>,
-// current_tab: &'a mut Option<String>,
-// renaming: &'a mut bool,
-// searching: &'a mut bool,
-// search_query: &'a mut String,
-// swapping: &'a mut bool,
-// swapping_asset: &'a mut Option<logic::AssetInfo>,
-// locale: &'a mut FluentBundle<Arc<FluentResource>>,
-// asset_context_menu_open: &'a mut Option<usize>,
-// copying: &'a mut bool,
-
 impl FileListUi {
     /// Toggle swapping/copying, showing the ban warning first if it hasn't been acknowledged.
     fn toggle_edit_mode(&mut self, mode: EditMode, asset: Option<AssetInfo>) {
@@ -298,7 +264,7 @@ impl FileListUi {
         self.swapping_asset = if enabled { asset } else { None };
     }
 
-    /// The rows to show for `category`, filtered when searching.
+    /// The rows to show for `category`, filtered when searching and sorted.
     fn update_view(&mut self, category: logic::Category) -> Arc<Vec<AssetInfo>> {
         let generation = logic::get_file_list_generation(category);
         let query = if self.searching {
@@ -306,21 +272,43 @@ impl FileListUi {
         } else {
             String::new()
         };
+        let sort = self.table.sort;
 
         if self.view.category != Some(category)
             || self.view.generation != generation
             || self.view.query != query
+            || self.view.sort != sort
         {
             let assets = logic::get_file_list(category);
-            let assets = if query.is_empty() {
-                assets // Unfiltered, share the snapshot
+            let assets = if query.is_empty() && sort.is_none() {
+                assets // Unchanged, share the snapshot
             } else {
-                Arc::new(filter_assets(&assets, &query))
+                let mut assets = if query.is_empty() {
+                    assets.to_vec()
+                } else {
+                    filter_assets(&assets, &query)
+                };
+                if let Some(sort) = sort {
+                    table::sort_assets(&mut assets, sort);
+                }
+                Arc::new(assets)
             };
+
+            // Keep the same asset selected when rows move around
+            if self.view.category == Some(category) {
+                let selected_name = self
+                    .selected
+                    .and_then(|i| self.view.assets.get(i))
+                    .map(|asset| asset.name.clone());
+                self.selected = selected_name
+                    .and_then(|name| assets.iter().position(|asset| asset.name == name));
+            }
+
             self.view = ListView {
                 category: Some(category),
                 generation,
                 query,
+                sort,
                 assets,
             };
         }
@@ -341,12 +329,20 @@ impl FileListUi {
         }
     }
 
-    fn handle_text_edit(&mut self, ui: &mut egui::Ui, alias: &str, file_name: &str) {
+    /// Text box for renaming, laid out normally or placed in `rect`.
+    fn handle_text_edit(
+        &mut self,
+        ui: &mut egui::Ui,
+        alias: &str,
+        file_name: &str,
+        rect: Option<egui::Rect>,
+    ) {
         let mut mutable_name = alias.to_string();
-        let response = egui::TextEdit::singleline(&mut mutable_name)
-            .hint_text(file_name)
-            .show(ui)
-            .response;
+        let edit = egui::TextEdit::singleline(&mut mutable_name).hint_text(file_name);
+        let response = match rect {
+            Some(rect) => ui.put(rect, edit),
+            None => edit.show(ui).response,
+        };
 
         if mutable_name != alias {
             config::set_asset_alias(file_name, &mutable_name);
@@ -722,7 +718,7 @@ impl FileListUi {
         let row_height = if display_image_preview {
             config::get_config_u64("image_preview_size").unwrap_or(128) as f32
         } else {
-            ui.text_style_height(&egui::TextStyle::Body)
+            ui.text_style_height(&egui::TextStyle::Body) + 4.0 // Room around the text
         };
 
         // Whole tiles per row; the old hardcoded gap over-packed rows, which is
@@ -797,59 +793,12 @@ impl FileListUi {
 
         let mut navigation_accepted: bool = false; // Used to check if the selected label is available to accept the keyboard navigation
 
-        // let mut table_properties = Vec::new();
-        // table_properties.push(("name", 0.0));
-        // table_properties.push(("size", 0.5));
-        // table_properties.push(("modified", 0.75));
-
-        // if !display_image_preview {
-        //     // Display table headers
-        //     let full_width = ui.available_width();
-        //     let desired_size = egui::vec2(full_width, row_height);
-        //     let rect = ui.allocate_exact_size(desired_size, egui::Sense::hover()).0;
-
-        //     for property in table_properties {
-        //         let size = rect.size();
-        //         println!("{}", property.1size.x);
-        //         let property_rect = egui::Rect::from_min_size(
-        //             rect.min + egui::vec2(property.1size.x, 0.0),
-        //             egui::vec2((1.0-property.1)size.x, size.y)
-        //         );
-
-        //         ui.put(property_rect,
-        //         egui::Label::new(property.0).truncate().selectable(false));
-        //     }
-
-        //     // // Column positions
-        //     // let alias_x = rect.min.x + 5.0;
-        //     // let size_x = rect.min.x + rect.width() * 0.7;
-        //     // let modified_x = rect.min.x + rect.width() * 1.0 - 5.0; // adjust for padding
-
-        //     // // Draw all columns
-        //     // ui.painter().text(
-        //     //     egui::pos2(alias_x+5, rect.min.y),
-        //     //     egui::Align2::LEFT_TOP,
-        //     //     "Name",
-        //     //     egui::TextStyle::Body.resolve(ui.style()),
-        //     //     visuals.text_color(),
-        //     // );
-
-        //     // ui.painter().text(
-        //     //     egui::pos2(size_x+5, rect.min.y),
-        //     //     egui::Align2::LEFT_TOP,
-        //     //     "Size",
-        //     //     egui::TextStyle::Body.resolve(ui.style()),
-        //     //     visuals.text_color(),
-        //     // );
-
-        //     // ui.painter().text(
-        //     //     egui::pos2(modified_x+5, rect.min.y),
-        //     //     egui::Align2::LEFT_TOP,
-        //     //     "Modified",
-        //     //     egui::TextStyle::Body.resolve(ui.style()),
-        //     //     visuals.text_color(),
-        //     // );
-        // }
+        // Column headers, sticky above the scrolling rows
+        let columns = if display_image_preview {
+            Vec::new()
+        } else {
+            self.table.header_ui(ui, &self.locale, row_height + 4.0)
+        };
 
         // File list for assets
         gui::begin_frame_textures(); // rotate pin sets
@@ -878,7 +827,7 @@ impl FileListUi {
 
                                     // Draw the text
                                     if is_selected && self.renaming {
-                                        self.handle_text_edit(ui, &alias, file_name);
+                                        self.handle_text_edit(ui, &alias, file_name, None);
                                     // Allow user to edit
                                     } else {
                                         let desired_size = egui::vec2(row_height, row_height); // Set height to the text style height
@@ -968,69 +917,52 @@ impl FileListUi {
                                 self.selected == Some(i)
                             };
 
-                            if is_selected && self.renaming {
-                                self.handle_text_edit(ui, &alias, &asset.name);
+                            let (rect, response) = ui.allocate_exact_size(
+                                egui::vec2(ui.available_width(), row_height),
+                                egui::Sense::click(),
+                            );
+
+                            let visuals = ui.visuals().clone();
+                            let (background_colour, text_colour) = self.handle_asset_response(
+                                response,
+                                &visuals,
+                                is_selected,
+                                i,
+                                scroll_to,
+                                &mut navigation_accepted,
+                                &mut focus_search_box,
+                                asset.clone(),
+                            );
+
+                            // Stripe every other row to make rows easier to follow
+                            let background_colour = if !is_selected && i % 2 == 1 {
+                                visuals.faint_bg_color
                             } else {
-                                let full_width = ui.available_width();
-                                let desired_size = egui::vec2(full_width, row_height);
-                                let (rect, response) =
-                                    ui.allocate_exact_size(desired_size, egui::Sense::click());
+                                background_colour
+                            };
+                            ui.painter().rect_filled(rect, 0.0, background_colour);
 
-                                let visuals = ui.visuals();
-                                let colours = self.handle_asset_response(
-                                    response,
-                                    visuals,
-                                    is_selected,
-                                    i,
-                                    scroll_to,
-                                    &mut navigation_accepted,
-                                    &mut focus_search_box,
-                                    asset.clone(),
-                                );
+                            let renaming = is_selected && self.renaming;
+                            let cells: Vec<_> = columns
+                                .iter()
+                                .filter(|column| {
+                                    !(renaming && column.column == table::Column::Name)
+                                })
+                                .copied()
+                                .collect();
+                            table::paint_row(ui, rect, &cells, asset, &alias, text_colour);
 
-                                let text_colour = colours.1;
-                                let background_colour = colours.0;
-
-                                ui.painter().rect_filled(rect, 0.0, background_colour);
-
-                                // // Format metadata
-                                // let size = format_size(asset.size);
-                                // let modified = if asset.last_modified.is_some() {
-                                //     format_modified(asset.last_modified.unwrap())
-                                // } else {
-                                //     "".to_string()
-                                // };
-
-                                // Column positions (add padding)
-                                let alias_x = rect.min.x + 5.0;
-                                // let size_x = rect.min.x + rect.width() * 0.7;
-                                // let modified_x = rect.min.x + rect.width() * 1.0 - 5.0; // adjust for padding
-
-                                // Draw all columns
-                                ui.painter().text(
-                                    egui::pos2(alias_x, rect.min.y),
-                                    egui::Align2::LEFT_TOP,
-                                    alias,
-                                    egui::TextStyle::Body.resolve(ui.style()),
-                                    text_colour,
-                                );
-
-                                // These are for later, broken rn
-                                //     ui.painter().text(
-                                //         egui::pos2(size_x, rect.min.y),
-                                //         egui::Align2::RIGHT_TOP,
-                                //         size,
-                                //         egui::TextStyle::Body.resolve(ui.style()),
-                                //         text_colour,
-                                //     );
-
-                                //     ui.painter().text(
-                                //         egui::pos2(modified_x, rect.min.y),
-                                //         egui::Align2::RIGHT_TOP,
-                                //         modified,
-                                //         egui::TextStyle::Body.resolve(ui.style()),
-                                //         text_colour,
-                                //     );
+                            if renaming {
+                                // Edit the name in place
+                                if let Some(name) =
+                                    columns.iter().find(|c| c.column == table::Column::Name)
+                                {
+                                    let cell = egui::Rect::from_min_size(
+                                        rect.min + egui::vec2(name.x, 0.0),
+                                        egui::vec2(name.width, rect.height()),
+                                    );
+                                    self.handle_text_edit(ui, &alias, &asset.name, Some(cell));
+                                }
                             }
                         }
                     }
@@ -1059,6 +991,7 @@ impl Default for FileListUi {
             asset_context_menu_open: None,
             copying: false,
             view: ListView::default(),
+            table: table::TableLayout::load(),
             pending_edit_mode: None,
         }
     }
@@ -1071,8 +1004,10 @@ mod tests {
     fn asset(name: &str) -> AssetInfo {
         AssetInfo {
             name: name.to_owned(),
-            _size: 0,
+            size: 0,
             last_modified: None,
+            created: None,
+            format: None,
             from_file: true,
             from_sql: false,
             from_rbx_storage: false,

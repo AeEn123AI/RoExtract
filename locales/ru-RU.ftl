@@ -12,6 +12,7 @@ about = О нас
 logs = Журналы
 
 # Buttons
+button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
@@ -139,3 +140,9 @@ update-changelog = Список изменений смотрите ниже
 support-sponsor = ♥ Спонсорство
 support-project-donate = ♥ Поддержать
 setting-below-restart-required = Примечание: для применения изменений настроек ниже потребуется перезапустить программу.
+
+column-size = Size # TODO: Translate
+column-type = Type # TODO: Translate
+column-modified = Modified # TODO: Translate
+column-name = Name # TODO: Translate
+column-created = Created # TODO: Translate
