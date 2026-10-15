@@ -30,7 +30,7 @@ const CONTRIBUTORS: [&str; 7] = [
     "IDDQD1337",
     "yuk1n0w",
 ];
-const DEPENDENCIES: [[&str; 2]; 16] = [
+const DEPENDENCIES: [[&str; 2]; 17] = [
     ["https://github.com/emilk/egui", ""],
     ["https://github.com/Adanos020/egui_dock", ""],
     ["https://github.com/lampsitter/egui_commonmark", ""],
@@ -46,6 +46,7 @@ const DEPENDENCIES: [[&str; 2]; 16] = [
     ["https://github.com/chronotope/chrono", ""],
     ["https://github.com/image-rs/image", ""],
     ["https://github.com/RustAudio/rodio", ""],
+    ["https://github.com/pdeljanov/Symphonia", ""],
     ["https://github.com/jannistpl/egui-file-dialog", ""],
 ];
 
@@ -403,6 +404,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             settings::sql_db_management(ui, self.locale);
             settings::rbx_storage_dir_management(ui, self.locale);
             settings::behavior(ui, self.locale);
+            settings::conversion(ui, self.locale);
             settings::updates(ui, self.locale);
 
             if settings::language(ui, self.locale) {

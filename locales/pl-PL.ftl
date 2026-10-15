@@ -12,6 +12,7 @@ settings = Ustawienia
 about = Informacje
 
 # Buttons
+button-convert = Convert to # TODO: Translate
 button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
@@ -76,6 +77,7 @@ error-invalid-directory-title = Nieprawidłowy katalog
 error-invalid-directory-description = Upewnij się, że ścieżka którą podałeś(aś) jest katalogiem
 
 # Headings
+conversion = Format conversion # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate
 actions = Akcje
 updates = Aktualizacje
@@ -86,6 +88,10 @@ dependencies = Zależności
 behavior = Zachowanie
 
 # Checkboxes
+enable-conversion = Enable format conversion # TODO: Translate
+audio-format = Audio # TODO: Translate
+convert-on-extract = Convert assets when extracting # TODO: Translate
+image-format = Images and textures # TODO: Translate
 use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 checkbox-hide-user-logs = Ukryj nazwę użytkownika z dziennika
 download-development-build = Używaj wersji deweloperskich, aby wcześniej otrzymywać nowe funkcje (Te wersje mogą być niestabilne)
@@ -97,6 +103,7 @@ use-alias = Eksportuj alternatywne nazwy plików
 
 
 # Descriptions
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate
 custom-sql-db-description = Jeśli chcesz uzyskać dostęp do innej pamięci podręcznej, zmień swoją bazę danych SQL poniżej. Możesz przywrócić domyślną za pomocą drugiego przycisku. To nie jest to samo co folder instalacyjny.
 overwrite-with = Podwójnie kliknij plik aby nadpisać z "{ $asset }"

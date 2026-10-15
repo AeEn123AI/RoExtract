@@ -88,7 +88,7 @@ Fixed missing localisation files in English and German (Thanks to @Vonercent)
 - [x] - Split cache_directory.rs into two files
 - [x] - Hande file list filtering in file_list.rs instead
 - [x] - Built-in media player to quickly preview sounds
-- [ ] - Ability to convert between formats
+- [x] - Ability to convert between formats
 - [x] - Audio length in list
 - [x] - Make it into a table with specific details e.g size, type, time created
 - [ ] - Wait for translations

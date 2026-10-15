@@ -13,6 +13,7 @@ about = 'Bout This Vessel
 logs = Ship’s Log  
 
 # Buttons
+button-convert = Convert to # TODO: Translate
 button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
@@ -77,6 +78,7 @@ error-invalid-directory-description = Avast! The path ye set ain’t leadin’ t
 generic-error-critical = A Most Dire Curse!  
 
 # Headings
+conversion = Format conversion # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate  
 actions = Orders  
 updates = Messages in a Bottle  
@@ -87,6 +89,10 @@ dependencies = Ship’s Riggings
 behavior = How the Crew Acts  
 
 # Checkboxes
+enable-conversion = Enable format conversion # TODO: Translate
+audio-format = Audio # TODO: Translate
+convert-on-extract = Convert assets when extracting # TODO: Translate
+image-format = Images and textures # TODO: Translate
 use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate  
 check-for-updates = Keep an Eye on the Horizon  
 automatically-install-updates = Let the Crew Handle Updates  
@@ -97,6 +103,7 @@ download-development-build = Test New Gadgets (May Be Unstable Waters)
 checkbox-hide-user-logs = Hide Ye True Name from the Ship’s Log  
 
 # Descriptions
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate
 custom-sql-db-description = If ye be needin’ to access a different stash o’ booty, chart a new course fer yer SQL ledger below. Ye can always sail back to default waters. This be not the same as yer main installin’ cove.
 clear-cache-description = If it be takin’ too long to find treasure, ye can toss all cargo overboard. The ship will fetch new supplies next time ye sail.  

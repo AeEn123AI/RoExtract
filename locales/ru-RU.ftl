@@ -12,6 +12,7 @@ about = О нас
 logs = Журналы
 
 # Buttons
+button-convert = Convert to # TODO: Translate
 button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
@@ -76,6 +77,7 @@ error-invalid-database-description = Убедитесь, что указанны
 generic-error-critical = Критическая ошибка
 
 # Headings
+conversion = Format conversion # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate
 actions = Действия
 updates = Обновления
@@ -86,6 +88,10 @@ dependencies = Зависимости
 behavior = Поведение
 
 # Checkboxes
+enable-conversion = Enable format conversion # TODO: Translate
+audio-format = Audio # TODO: Translate
+convert-on-extract = Convert assets when extracting # TODO: Translate
+image-format = Images and textures # TODO: Translate
 use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 check-for-updates = Проверить наличие обновлений
 automatically-install-updates = Автоматически устанавливать обновления
@@ -97,6 +103,7 @@ checkbox-hide-user-logs = Скрыть имя пользователя из жу
 
 
 # Descriptions
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate
 clear-cache-description = Если вывод списка файлов и извлечение всех файлов из директории занимает слишком много времени, вы можете очистить кэш с помощью кнопки ниже. Это удалит все файлы из кэша, и ваш клиент автоматически создаст их заново при необходимости.
 extract-all-description = Кнопка ниже скопирует все ресурсы и создаст папки, например, /sounds, /images, для их классификации. Вы можете выбрать корневую папку при запуске.

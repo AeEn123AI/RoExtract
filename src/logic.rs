@@ -20,6 +20,7 @@ use crate::{config, locale};
 
 pub mod audio;
 pub mod cache_directory;
+pub mod convert;
 pub mod ktx;
 pub mod rbx_storage_directory;
 pub mod sql_database;
@@ -129,7 +130,10 @@ fn update_file_list(category: Category, value: AssetInfo, cli_list_mode: bool) {
 
 fn clear_file_list(category: Category) {
     let mut file_lists = FILE_LISTS.lock().unwrap();
-    file_lists.entry(category).or_default().set_assets(Vec::new());
+    file_lists
+        .entry(category)
+        .or_default()
+        .set_assets(Vec::new());
 }
 
 /// Zstd magic bytes: 0xFD2FB528 (little-endian)
@@ -378,7 +382,7 @@ fn list_assets(category: Category, cli_list_mode: bool, yield_for_thread: bool, 
             let file_list = file_lists.entry(category).or_default();
             match staging {
                 Some(staging) if completed => file_list.set_assets(staging),
-                Some(_) => (), // Interrupted, keep the old list
+                Some(_) => (),                        // Interrupted, keep the old list
                 None => file_list.loaded = completed, // An interrupted list is incomplete
             }
             if completed {
@@ -404,6 +408,17 @@ pub fn extract_to_file(
     destination: PathBuf,
     add_extension: bool,
 ) -> Result<PathBuf, std::io::Error> {
+    extract_to_file_as(asset, destination, add_extension, None)
+}
+
+/// Like `extract_to_file`, converting to `target` when given. If conversion
+/// fails the asset is written as it is.
+pub fn extract_to_file_as(
+    asset: AssetInfo,
+    destination: PathBuf,
+    add_extension: bool,
+    target: Option<convert::Target>,
+) -> Result<PathBuf, std::io::Error> {
     let mut destination = destination.clone(); // Get own mutable destination
 
     let bytes = read_asset(&asset)?;
@@ -419,6 +434,27 @@ pub fn extract_to_file(
             extract_bytes(&header, bytes) // Extract between the header to the end of the file.
         }
         Err(_) => bytes, // No header found; write the raw bytes as-is.
+    };
+
+    let extracted_bytes = match target {
+        Some(target) => match convert::convert(&asset, &extracted_bytes, target) {
+            Ok(converted) => {
+                if add_extension {
+                    destination.set_extension(target.extension());
+                }
+                converted
+            }
+            Err(e) => {
+                log_error!(
+                    "Failed to convert {} to {}: {}",
+                    asset.name,
+                    target.name(),
+                    e
+                );
+                extracted_bytes
+            }
+        },
+        None => extracted_bytes,
     };
 
     // Ensure parent directory exists (needed when asset name contains subdirectories,
@@ -535,7 +571,8 @@ fn extract_category(destination: &PathBuf, category: Category, use_alias: bool) 
             "extracting-files",
             Some(&args),
         ));
-        if let Err(e) = extract_to_file(entry.clone(), dest, true) {
+        let target = convert::target_on_extract(entry);
+        if let Err(e) = extract_to_file_as(entry.clone(), dest, true, target) {
             log_error!("Error extracting file ({}/{}): {}", count, total, e);
         }
     }

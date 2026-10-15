@@ -35,6 +35,7 @@ button-copy = Copy <Ctrl+C>
 button-open = Open <Return>
 button-extract-file = Extract <Ctrl+E>
 button-play = Play <Space>
+button-convert = Convert to
 button-display-image-preview = Display image previews
 button-disable-display-image-preview = Stop displaying image previews
 input-preview-size = Preview size
@@ -91,6 +92,7 @@ downloading-update = Downloading update…
 contributors = Contributors
 dependencies = Dependencies
 behavior = Behavior
+conversion = Format conversion
 
 # Checkboxes
 check-for-updates = Check for updates
@@ -101,6 +103,10 @@ refresh-before-extract = Refresh file list before extracting
 use-builtin-player = Play sounds in the built-in player when opening them
 download-development-build = Use development builds to get the latest features early (These builds may be unstable)
 checkbox-hide-user-logs = Hide username from logs
+enable-conversion = Enable format conversion
+convert-on-extract = Convert assets when extracting
+image-format = Images and textures
+audio-format = Audio
 
 
 # Descriptions
@@ -109,6 +115,7 @@ extract-all-description = The button below will copy all assets and create folde
 custom-cache-dir-description = If you want to access a different cache, change your cache directory below, you can set it back to default with the other button. This is different from your installation folder.
 custom-sql-db-description = If you want to access a different cache, change your SQL Database below, you can set it back to default with the other button. This is different from your installation folder.
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button.
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is.
 use-alias-description = Instead of exporting the raw file name for the asset, checking this checkbox will export the filename you choose instead. You can do this by renaming within the application itself.
 swap-choose-file = Double click a file to swap
 swap-with = Double click a file to swap with "{ $asset }"

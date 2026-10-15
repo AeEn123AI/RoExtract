@@ -13,6 +13,7 @@ about = aobut
 logs = loges
 
 # Buttons
+button-convert = Convert to # TODO: Translate
 button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
@@ -77,6 +78,7 @@ error-invalid-directory-description = please make sur eth epath you prpvided is 
 generic-error-critical = cirtical error
 
 # Headings
+conversion = Format conversion # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate
 actions = atcions
 updates = udopates
@@ -87,6 +89,10 @@ dependencies = depenceinses
 behavior = beahvior
 
 # Checkboxes
+enable-conversion = Enable format conversion # TODO: Translate
+audio-format = Audio # TODO: Translate
+convert-on-extract = Convert assets when extracting # TODO: Translate
+image-format = Images and textures # TODO: Translate
 use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 check-for-updates = chek ofr udopates
 automatically-install-updates = autyom,atically insatll upodates
@@ -98,6 +104,7 @@ checkbox-hide-user-logs = hidies uder5tname from lgo
 
 
 # Descriptions
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate
 custom-sql-db-description = if yotuw ant ttaccess ot a different caceh, change eiyoru slq databse bloew
 clear-cache-description = ife itl is tlanging too lgin to lsit file sm foirmm at edirectory, youc anc lear tyouyr bolxoc ache sto help,t ehc ;leitn  will regerneate this files whern  needed

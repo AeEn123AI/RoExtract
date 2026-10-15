@@ -13,6 +13,7 @@ about = Of This Matter
 logs = Chronicles  
 
 # Buttons
+button-convert = Convert to # TODO: Translate
 button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
@@ -77,6 +78,7 @@ error-invalid-directory-description = Pray, ensure that the path thou hast given
 generic-error-critical = A Most Dire Misfortune!  
 
 # Headings
+conversion = Format conversion # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate  
 actions = Deeds  
 updates = Tidings of Change  
@@ -87,6 +89,10 @@ dependencies = That Which is Required
 behavior = The Nature of Things  
 
 # Checkboxes
+enable-conversion = Enable format conversion # TODO: Translate
+audio-format = Audio # TODO: Translate
+convert-on-extract = Convert assets when extracting # TODO: Translate
+image-format = Images and textures # TODO: Translate
 use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate  
 check-for-updates = Seek Tidings of Change  
 automatically-install-updates = Set Forth Changes Without Bidding  
@@ -97,6 +103,7 @@ download-development-build = Partake of Unfinished Labors to Glimpse the Future 
 checkbox-hide-user-logs = Conceal the Name of the User from the Chronicles  
 
 # Descriptions
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate  
 custom-sql-db-description = Shouldst thou desire to consult another scroll of tables, alter the path below. It may yet be restored to its default with a simple click. Mark thee well, this is not thy installation vault.  
 clear-cache-description = If thy listing of scrolls taketh too long, and the retrieval is sluggish, thou mayest cleanse thy cache with the button below. The scrolls shall be reborn when next thou summoneth Roblox.  

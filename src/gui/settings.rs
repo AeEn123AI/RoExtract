@@ -1,4 +1,4 @@
-use crate::{config, dialog, gui, locale, logic};
+use crate::{config, dialog, gui, locale, logic, logic::convert};
 use fluent_bundle::{FluentArgs, FluentBundle, FluentResource};
 use std::{sync::Arc, thread};
 
@@ -302,6 +302,66 @@ pub fn behavior(ui: &mut egui::Ui, locale: &FluentBundle<Arc<FluentResource>>) {
     );
     if image_preview_size != old {
         config::set_config_value("image_preview_size", image_preview_size.into());
+    }
+}
+
+pub fn conversion(ui: &mut egui::Ui, locale: &FluentBundle<Arc<FluentResource>>) {
+    ui.separator();
+    ui.heading(locale::get_message(locale, "conversion", None));
+    ui.label(locale::get_message(locale, "conversion-description", None));
+
+    let old = convert::is_enabled();
+    let mut enabled = old;
+    ui.checkbox(
+        &mut enabled,
+        locale::get_message(locale, "enable-conversion", None),
+    );
+    if enabled != old {
+        config::set_config_value("conversion_enabled", enabled.into());
+    }
+
+    ui.add_enabled_ui(enabled, |ui| {
+        let old = config::get_config_bool("convert_on_extract").unwrap_or(true);
+        let mut convert_on_extract = old;
+        ui.checkbox(
+            &mut convert_on_extract,
+            locale::get_message(locale, "convert-on-extract", None),
+        );
+        if convert_on_extract != old {
+            config::set_config_value("convert_on_extract", convert_on_extract.into());
+        }
+
+        format_choice(
+            ui,
+            "convert_image_format",
+            &locale::get_message(locale, "image-format", None),
+            &convert::Target::IMAGE,
+        );
+        format_choice(
+            ui,
+            "convert_audio_format",
+            &locale::get_message(locale, "audio-format", None),
+            &convert::Target::AUDIO,
+        );
+    });
+}
+
+/// A drop-down to pick which format to convert to, saved under `key`.
+fn format_choice(ui: &mut egui::Ui, key: &str, label: &str, targets: &[convert::Target]) {
+    let current = config::get_config_string(key)
+        .and_then(|extension| convert::Target::from_extension(&extension))
+        .filter(|target| targets.contains(target))
+        .unwrap_or(targets[0]);
+    let mut selected = current;
+    egui::ComboBox::from_label(label)
+        .selected_text(current.name())
+        .show_ui(ui, |ui| {
+            for &target in targets {
+                ui.selectable_value(&mut selected, target, target.name());
+            }
+        });
+    if selected != current {
+        config::set_config_value(key, selected.extension().into());
     }
 }
 

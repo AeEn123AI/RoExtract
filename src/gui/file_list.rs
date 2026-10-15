@@ -92,10 +92,19 @@ fn extract_all_of_type(category: logic::Category) {
 }
 
 fn extract_file_button(asset: logic::AssetInfo) {
+    let target = logic::convert::target_on_extract(&asset);
+    extract_file_as(asset, target);
+}
+
+/// Ask where to save `asset`, then extract it there, converted to `target` if given.
+fn extract_file_as(asset: logic::AssetInfo, target: Option<logic::convert::Target>) {
     thread::spawn(move || {
-        let alias = config::get_asset_alias(&asset.name);
-        if let Some(destination) = dialog::save_file(&alias) {
-            if let Err(e) = logic::extract_to_file(asset, destination, false) {
+        let mut file_name = config::get_asset_alias(&asset.name);
+        if let Some(target) = target {
+            file_name = format!("{file_name}.{}", target.extension());
+        }
+        if let Some(destination) = dialog::save_file(&file_name) {
+            if let Err(e) = logic::extract_to_file_as(asset, destination, false, target) {
                 log_critical!("{}", e)
             }
         }
@@ -452,8 +461,23 @@ impl FileListUi {
                 ))
                 .clicked()
             {
-                extract_file_button(asset);
+                extract_file_button(asset.clone());
                 self.asset_context_menu_open = None;
+            }
+
+            let targets = logic::convert::targets_for(&asset);
+            if logic::convert::is_enabled() && !targets.is_empty() {
+                ui.menu_button(
+                    locale::get_message(&self.locale, "button-convert", None),
+                    |ui| {
+                        for &target in targets {
+                            if ui.button(target.name()).clicked() {
+                                extract_file_as(asset.clone(), Some(target));
+                                self.asset_context_menu_open = None;
+                            }
+                        }
+                    },
+                );
             }
         }
         if ui

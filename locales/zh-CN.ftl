@@ -13,6 +13,7 @@ about = 关于
 logs = 日志
 
 # Buttons
+button-convert = Convert to # TODO: Translate
 button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
@@ -77,6 +78,7 @@ error-invalid-directory-description = 请确保您提供的路径是一个目录
 generic-error-critical = 严重错误
 
 # Headings
+conversion = Format conversion # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate
 actions = 操作
 updates = 更新
@@ -87,6 +89,10 @@ dependencies = 依赖项
 behavior = 可选项
 
 # Checkboxes
+enable-conversion = Enable format conversion # TODO: Translate
+audio-format = Audio # TODO: Translate
+convert-on-extract = Convert assets when extracting # TODO: Translate
+image-format = Images and textures # TODO: Translate
 use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 check-for-updates = 检查更新
 automatically-install-updates = 自动安装更新
@@ -97,6 +103,7 @@ download-development-build = 使用开发版本以提前获得功能
 checkbox-hide-user-logs = 从日志中隐藏用户名
 
 # Descriptions
+conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
 custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate
 custom-sql-db-description = If you want to access a different cache, change your SQL Database below, you can set it back to default with the other button. This is different from your installation folder. # TODO: Translate
 clear-cache-description = 如果从目录列出文件耗时太长，您可以清理Roblox缓存来帮助解决，客户端将在需要时重新生成这些文件
