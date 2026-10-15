@@ -44,6 +44,7 @@ button-reset-columns = Reset columns
 column-name = Name
 column-type = Type
 column-size = Size
+column-length = Length
 column-created = Created
 column-modified = Modified
 

@@ -149,3 +149,4 @@ column-name = Name # TODO: Translate
 column-created = Created # TODO: Translate
 player-no-device = No audio output device was found. # TODO: Translate
 player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
+column-length = Length # TODO: Translate

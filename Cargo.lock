@@ -26,6 +26,7 @@ dependencies = [
  "serde_json",
  "strum 0.27.2",
  "strum_macros 0.27.2",
+ "symphonia",
  "sys-locale",
  "texture2ddecoder",
  "unic-langid",

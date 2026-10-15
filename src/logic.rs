@@ -18,6 +18,7 @@ use strum_macros::{Display, EnumIter};
 
 use crate::{config, locale};
 
+pub mod audio;
 pub mod cache_directory;
 pub mod ktx;
 pub mod rbx_storage_directory;
@@ -308,6 +309,8 @@ pub fn clear_cache() {
 
             sql_database::clear_cache(&locale);
             cache_directory::clear_cache(&locale);
+
+            audio::clear();
 
             // Clear the file lists for visual feedback to the user that the files are actually deleted
             for file_list in FILE_LISTS.lock().unwrap().values_mut() {
@@ -626,6 +629,7 @@ pub fn swap_assets(asset_a: AssetInfo, asset_b: AssetInfo) {
         ));
         log_error!("Error opening file '{}'", rbx_storage_result.unwrap_err());
     } else {
+        audio::clear(); // The contents changed
         args.set("item_a", asset_a.name);
         args.set("item_b", asset_b.name);
         update_status(locale::get_message(&locale, "swapped", Some(&args)));
@@ -684,6 +688,7 @@ pub fn copy_assets(asset_a: AssetInfo, asset_b: AssetInfo) {
         ));
         log_error!("Error opening file '{}'", rbx_storage_result.unwrap_err());
     } else {
+        audio::clear(); // The contents changed
         args.set("item_a", asset_a.name);
         args.set("item_b", asset_b.name);
         update_status(locale::get_message(&locale, "copied", Some(&args)));
@@ -776,6 +781,11 @@ pub fn update_status(value: String) {
     *status = value;
     let mut request = REQUEST_REPAINT.lock().unwrap();
     *request = true;
+}
+
+/// Ask the GUI to redraw soon, e.g. after background work finished.
+pub fn request_repaint() {
+    *REQUEST_REPAINT.lock().unwrap() = true;
 }
 
 pub fn update_progress(value: f32) {

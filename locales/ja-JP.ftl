@@ -148,3 +148,4 @@ use-builtin-player = Play sounds in the built-in player when opening them # TODO
 player-no-device = No audio output device was found. # TODO: Translate
 player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
 button-play = Play <Space> # TODO: Translate
+column-length = Length # TODO: Translate

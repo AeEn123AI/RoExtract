@@ -150,3 +150,4 @@ column-type = Type # TODO: Translate
 column-modified = Modified # TODO: Translate
 column-name = Name # TODO: Translate
 column-created = Created # TODO: Translate
+column-length = Length # TODO: Translate

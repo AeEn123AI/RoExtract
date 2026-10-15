@@ -11,7 +11,12 @@ use fluent_bundle::{FluentBundle, FluentResource};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use crate::{config, locale, logic::AssetInfo};
+use crate::{
+    config,
+    gui::player,
+    locale,
+    logic::{audio, AssetInfo, Category},
+};
 
 const CONFIG_KEY: &str = "file_table";
 /// Width of the grab area on a column's right edge.
@@ -25,15 +30,17 @@ pub enum Column {
     Name,
     Type,
     Size,
+    Length,
     Created,
     Modified,
 }
 
 impl Column {
-    const ALL: [Column; 5] = [
+    const ALL: [Column; 6] = [
         Column::Name,
         Column::Type,
         Column::Size,
+        Column::Length,
         Column::Created,
         Column::Modified,
     ];
@@ -43,6 +50,7 @@ impl Column {
             Column::Name => "column-name",
             Column::Type => "column-type",
             Column::Size => "column-size",
+            Column::Length => "column-length",
             Column::Created => "column-created",
             Column::Modified => "column-modified",
         }
@@ -50,11 +58,12 @@ impl Column {
 
     fn default_width(self) -> f32 {
         match self {
-            Column::Name => 0.4,
-            Column::Type => 0.1,
-            Column::Size => 0.12,
-            Column::Created => 0.19,
-            Column::Modified => 0.19,
+            Column::Name => 0.36,
+            Column::Type => 0.08,
+            Column::Size => 0.1,
+            Column::Length => 0.1,
+            Column::Created => 0.18,
+            Column::Modified => 0.18,
         }
     }
 
@@ -70,16 +79,25 @@ impl Column {
         match self {
             Column::Name => 0,
             Column::Size => 1,
-            Column::Type => 2,
-            Column::Modified => 3,
-            Column::Created => 4,
+            Column::Length => 2,
+            Column::Type => 3,
+            Column::Modified => 4,
+            Column::Created => 5,
         }
     }
 
     fn align(self) -> egui::Align {
         match self {
-            Column::Size => egui::Align::RIGHT,
+            Column::Size | Column::Length => egui::Align::RIGHT,
             _ => egui::Align::LEFT,
+        }
+    }
+
+    /// Whether this column means anything for assets of `category`.
+    fn applies_to(self, category: Category) -> bool {
+        match self {
+            Column::Length => matches!(category, Category::Music | Category::Sounds),
+            _ => true,
         }
     }
 
@@ -89,6 +107,12 @@ impl Column {
             Column::Name => alias.to_owned(),
             Column::Type => asset.format.unwrap_or_default().to_uppercase(),
             Column::Size => format_size(asset.size),
+            // Worked out in the background the first time the row is shown
+            Column::Length => match audio::length(asset) {
+                Some(length) => player::format_duration(length),
+                None if audio::is_pending(asset) => "…".to_owned(),
+                None => String::new(),
+            },
             Column::Created => asset.created.map(format_time).unwrap_or_default(),
             Column::Modified => asset.last_modified.map(format_time).unwrap_or_default(),
         }
@@ -100,6 +124,7 @@ impl Column {
             Column::Name => Ordering::Equal,
             Column::Type => a.format.cmp(&b.format),
             Column::Size => a.size.cmp(&b.size),
+            Column::Length => compare_known(audio::cached_length(a), audio::cached_length(b)),
             Column::Created => compare_times(a.created, b.created),
             Column::Modified => compare_times(a.last_modified, b.last_modified),
         }
@@ -108,6 +133,11 @@ impl Column {
 
 /// Unknown times sort last.
 fn compare_times(a: Option<SystemTime>, b: Option<SystemTime>) -> Ordering {
+    compare_known(a, b)
+}
+
+/// Unknown values sort last.
+fn compare_known<T: Ord>(a: Option<T>, b: Option<T>) -> Ordering {
     match (a, b) {
         (Some(a), Some(b)) => a.cmp(&b),
         (Some(_), None) => Ordering::Less,
@@ -239,13 +269,13 @@ impl TableLayout {
         self
     }
 
-    /// The columns shown in a table `width` wide, dropping the least important
-    /// ones that don't fit.
-    pub fn shown_columns(&self, width: f32) -> Vec<ShownColumn> {
+    /// The columns shown for `category` in a table `width` wide, dropping the
+    /// least important ones that don't fit.
+    pub fn shown_columns(&self, width: f32, category: Category) -> Vec<ShownColumn> {
         let mut shown: Vec<&ColumnLayout> = self
             .columns
             .iter()
-            .filter(|layout| layout.visible)
+            .filter(|layout| layout.visible && layout.column.applies_to(category))
             .collect();
         while shown.len() > 1
             && shown
@@ -339,10 +369,11 @@ impl TableLayout {
         ui: &mut egui::Ui,
         locale: &FluentBundle<Arc<FluentResource>>,
         height: f32,
+        category: Category,
     ) -> Vec<ShownColumn> {
         let width = ui.available_width();
         let (rect, _) = ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
-        let shown = self.shown_columns(width);
+        let shown = self.shown_columns(width, category);
         let before = self.clone();
         let visuals = ui.visuals().clone();
         let font = egui::TextStyle::Body.resolve(ui.style());
@@ -578,7 +609,6 @@ pub fn paint_row(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::logic::Category;
     use std::time::Duration;
 
     fn asset(name: &str, size: u64, format: Option<&'static str>, age: Option<u64>) -> AssetInfo {
@@ -682,7 +712,7 @@ mod tests {
     #[test]
     fn test_shown_columns_fill_width() {
         let layout = TableLayout::default();
-        let shown = layout.shown_columns(1000.0);
+        let shown = layout.shown_columns(1000.0, Category::Sounds);
         assert_eq!(shown.len(), Column::ALL.len());
         let total: f32 = shown.iter().map(|c| c.width).sum();
         assert!((total - 1000.0).abs() < 0.01);
@@ -694,18 +724,32 @@ mod tests {
         let layout = TableLayout::default();
         // Room for Name (120) + Size (60) + Type (60) only
         let shown: Vec<_> = layout
-            .shown_columns(250.0)
+            .shown_columns(250.0, Category::Images)
             .iter()
             .map(|c| c.column)
             .collect();
         assert_eq!(shown, [Column::Name, Column::Type, Column::Size]);
         // Name is always kept
         let shown: Vec<_> = layout
-            .shown_columns(10.0)
+            .shown_columns(10.0, Category::Images)
             .iter()
             .map(|c| c.column)
             .collect();
         assert_eq!(shown, [Column::Name]);
+    }
+
+    #[test]
+    fn test_length_only_for_audio() {
+        let layout = TableLayout::default();
+        let has_length = |category| {
+            layout
+                .shown_columns(1000.0, category)
+                .iter()
+                .any(|c| c.column == Column::Length)
+        };
+        assert!(has_length(Category::Sounds));
+        assert!(has_length(Category::Music));
+        assert!(!has_length(Category::Images));
     }
 
     #[test]
@@ -722,16 +766,16 @@ mod tests {
     #[test]
     fn test_resize_keeps_pair_width_and_respects_minimum() {
         let mut layout = TableLayout::default();
-        let shown = layout.shown_columns(1000.0);
+        let shown = layout.shown_columns(1000.0, Category::Sounds);
         let (name, kind) = (shown[0], shown[1]);
         layout.resize(name, kind, 20.0, 1000.0);
-        let after = layout.shown_columns(1000.0);
+        let after = layout.shown_columns(1000.0, Category::Sounds);
         assert!((after[0].width - (name.width + 20.0)).abs() < 0.01);
         assert!((after[0].width + after[1].width - (name.width + kind.width)).abs() < 0.01);
 
         // Can't shrink the right column below its minimum
         layout.resize(after[0], after[1], 10_000.0, 1000.0);
-        let after = layout.shown_columns(1000.0);
+        let after = layout.shown_columns(1000.0, Category::Sounds);
         assert!((after[1].width - Column::Type.min_width()).abs() < 0.01);
     }
 

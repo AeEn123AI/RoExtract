@@ -89,7 +89,7 @@ Fixed missing localisation files in English and German (Thanks to @Vonercent)
 - [x] - Hande file list filtering in file_list.rs instead
 - [x] - Built-in media player to quickly preview sounds
 - [ ] - Ability to convert between formats
-- [ ] - Audio length in list
+- [x] - Audio length in list
 - [x] - Make it into a table with specific details e.g size, type, time created
 - [ ] - Wait for translations
 

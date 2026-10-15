@@ -226,6 +226,8 @@ struct ListView {
     generation: u64,
     query: String,
     sort: Option<table::Sort>,
+    /// Audio lengths known when sorted by length.
+    lengths_generation: u64,
     assets: Arc<Vec<AssetInfo>>,
 }
 
@@ -315,12 +317,24 @@ impl FileListUi {
         } else {
             String::new()
         };
-        let sort = self.table.sort;
+        // Only audio has a length to sort by
+        let sort = self.table.sort.filter(|sort| {
+            sort.column != table::Column::Length
+                || matches!(category, logic::Category::Music | logic::Category::Sounds)
+        });
+        // Sorting by length re-sorts as lengths come in
+        let sort_by_length = sort.is_some_and(|sort| sort.column == table::Column::Length);
+        let lengths_generation = if sort_by_length {
+            logic::audio::generation()
+        } else {
+            0
+        };
 
         if self.view.category != Some(category)
             || self.view.generation != generation
             || self.view.query != query
             || self.view.sort != sort
+            || self.view.lengths_generation != lengths_generation
         {
             let assets = logic::get_file_list(category);
             let assets = if query.is_empty() && sort.is_none() {
@@ -331,6 +345,11 @@ impl FileListUi {
                 } else {
                     filter_assets(&assets, &query)
                 };
+                if sort_by_length {
+                    for asset in &assets {
+                        logic::audio::length(asset); // Queue the ones not known yet
+                    }
+                }
                 if let Some(sort) = sort {
                     table::sort_assets(&mut assets, sort);
                 }
@@ -352,6 +371,7 @@ impl FileListUi {
                 generation,
                 query,
                 sort,
+                lengths_generation,
                 assets,
             };
         }
@@ -848,7 +868,8 @@ impl FileListUi {
         let columns = if display_image_preview {
             Vec::new()
         } else {
-            self.table.header_ui(ui, &self.locale, row_height + 4.0)
+            self.table
+                .header_ui(ui, &self.locale, row_height + 4.0, category)
         };
 
         // File list for assets
