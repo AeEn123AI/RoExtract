@@ -2,7 +2,6 @@
 use eframe::egui;
 use egui_dock::{DockArea, DockState, NodeIndex, Style, SurfaceIndex};
 use fluent_bundle::{FluentBundle, FluentResource};
-use native_dialog::DialogBuilder;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::{LazyLock, Mutex};
@@ -10,7 +9,7 @@ use std::time::Duration;
 
 use std::collections::{HashMap, HashSet};
 // Used for input
-use crate::{config, locale, log, logic, updater}; // Used for functionality
+use crate::{config, dialog, locale, log, logic, updater}; // Used for functionality
 use eframe::egui::TextureHandle;
 
 mod file_list;
@@ -444,11 +443,14 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                     .button(locale::get_message(self.locale, "button-export-logs", None))
                     .clicked()
                 {
-                    if let Some(path) = DialogBuilder::file().save_single_file().show().unwrap() {
-                        if let Err(e) = std::fs::write(path, logs.clone()) {
-                            log_critical!("Failed to save logs: {}", e);
+                    let logs = logs.clone();
+                    std::thread::spawn(move || {
+                        if let Some(path) = dialog::save_file("RoExtract.log") {
+                            if let Err(e) = std::fs::write(path, logs) {
+                                log_critical!("Failed to save logs: {}", e);
+                            }
                         }
-                    }
+                    });
                 }
             });
 
@@ -662,6 +664,7 @@ impl MyApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         gui_setup(cc);
         ktx_preview::init(cc.gl.as_deref());
+        dialog::attach(&cc.egui_ctx); // Fallback dialogs draw in this window from now on
 
         Default::default()
     }
@@ -691,6 +694,8 @@ impl eframe::App for MyApp {
                 self.update_prompt = None;
             }
         }
+
+        dialog::show(ctx); // Fallback dialogs, when native ones are unavailable
 
         // Display the status bar at the bottom
         egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
@@ -737,6 +742,8 @@ impl eframe::App for MyApp {
 }
 
 pub fn run_gui() {
+    dialog::allow_windows();
+
     // If the user is not welcomed before, welcome them
     if !config::get_config_bool("welcomed").unwrap_or(false) {
         let _ = welcome::run_gui();
@@ -745,6 +752,10 @@ pub fn run_gui() {
     // Only run GUI after user has been welcomed
     if config::get_config_bool("welcomed").unwrap_or(true) {
         // Update check now runs in MyApp::update (background thread, non-blocking).
+
+        // Find the cache now, on the main thread, so that any dialogs asking the
+        // user for it can open before the main window.
+        logic::init_sources();
 
         let options = eframe::NativeOptions {
             viewport: egui::ViewportBuilder::default().with_icon(
@@ -758,6 +769,8 @@ pub fn run_gui() {
             options,
             Box::new(|cc| Ok(Box::new(MyApp::new(cc)))),
         );
+
+        dialog::detach();
 
         if result.is_err() {
             log_critical!("GUI failed: {}", result.unwrap_err());

@@ -13,6 +13,7 @@ about = 关于
 logs = 日志
 
 # Buttons
+button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
 button-reset-sql-db = Reset SQL Database # TODO: Translate
@@ -117,6 +118,7 @@ swapped = 已将 { $item_a } 与 { $item_b } 替换
 copied = 已用 { $item_a } 覆盖 { $item_b }
 
 # Misc
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
 no-directory = Not found # TODO: Translate
 rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate
 sql-database = SQL Database: { $path } # TODO: Translate

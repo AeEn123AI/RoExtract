@@ -12,6 +12,7 @@ about = О нас
 logs = Журналы
 
 # Buttons
+button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
 button-extract-type = Распаковать все файлы этого типа <F3>
@@ -125,6 +126,7 @@ error-extracting-file = ОШИБКА: Не удалось извлечь: { $err
 error-check-logs = ОШИБКА: Более подробную информацию смотрите в журнале.
 
 # Misc
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
 no-directory = Not found # TODO: Translate
 rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate
 no-function = (Пока не функционирует)

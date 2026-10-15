@@ -12,6 +12,7 @@ settings = Ustawienia
 about = Informacje
 
 # Buttons
+button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
 button-reset-sql-db = Zresetuj bazę danych SQL
@@ -124,6 +125,7 @@ error-extracting-file = BŁĄD: Nie udało się wyodrębnić plików: { $error }
 error-check-logs = BŁĄD: Sprawdź dziennik po więcej informacji.
 
 # Misc
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
 no-directory = Not found # TODO: Translate
 rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate
 sql-database = Baza danych SQL: { $path }

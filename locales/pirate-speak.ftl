@@ -13,6 +13,7 @@ about = 'Bout This Vessel
 logs = Ship’s Log  
 
 # Buttons
+button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
 button-reset-sql-db = Scuttle the SQL Ledger
@@ -124,6 +125,7 @@ error-extracting-file = ERROR: Couldn’t Haul It Aboard: { $error }
 error-check-logs = ERROR: Check the Captain’s Log for More Clues.  
 
 # Misc
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
 no-directory = Not found # TODO: Translate
 rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate
 sql-database = Ledger o' SQL: { $path }

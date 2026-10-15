@@ -13,6 +13,7 @@ about = Of This Matter
 logs = Chronicles  
 
 # Buttons
+button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate  
 button-reset-sql-db = Restore the Scroll of Tables to Its Pristine State  
@@ -124,6 +125,7 @@ error-extracting-file = WOE! Could Not Retrieve: { $error }
 error-check-logs = WOE! Look to the Chronicles for Further Ills.  
 
 # Misc
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
 no-directory = Not found # TODO: Translate
 rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate  
 sql-database = Scroll of Tables: { $path }  

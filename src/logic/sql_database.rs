@@ -7,7 +7,7 @@ use std::{
     time::SystemTime,
 };
 
-use crate::{config, locale, logic};
+use crate::{config, dialog, locale, logic};
 
 const DEFAULT_PATHS: [&str; 2] = [
     "%localappdata%\\Roblox\\rbx-storage.db",
@@ -47,43 +47,21 @@ pub fn open_database() -> Option<Connection> {
     }
 
     // If it was unable to detect any path, tell the user
-    let _ = native_dialog::DialogBuilder::message()
-        .set_level(native_dialog::MessageLevel::Error)
-        .set_title(locale::get_message(
-            &locale::get_locale(None),
-            "error-sql-detection-title",
-            None,
-        ))
-        .set_text(locale::get_message(
-            &locale::get_locale(None),
-            "error-sql-detection-description",
-            None,
-        ))
-        .alert()
-        .show();
+    let locale = locale::get_locale(None);
+    dialog::alert(
+        dialog::Level::Error,
+        &locale::get_message(&locale, "error-sql-detection-title", None),
+        &locale::get_message(&locale, "error-sql-detection-description", None),
+    );
 
-    let yes = native_dialog::DialogBuilder::message()
-        .set_level(native_dialog::MessageLevel::Error)
-        .set_title(locale::get_message(
-            &locale::get_locale(None),
-            "confirmation-custom-sql-title",
-            None,
-        ))
-        .set_text(locale::get_message(
-            &locale::get_locale(None),
-            "confirmation-custom-sql-description",
-            None,
-        ))
-        .confirm()
-        .show()
-        .unwrap();
+    let yes = dialog::confirm(
+        dialog::Level::Error,
+        &locale::get_message(&locale, "confirmation-custom-sql-title", None),
+        &locale::get_message(&locale, "confirmation-custom-sql-description", None),
+    );
 
     if yes {
-        let option_path = native_dialog::DialogBuilder::file()
-            .open_single_dir()
-            .show()
-            .unwrap();
-        if let Some(path) = option_path {
+        if let Some(path) = dialog::pick_file() {
             config::set_config_value(
                 "sql_database",
                 logic::resolve_path(path.to_string_lossy().as_ref()).into(),
@@ -477,8 +455,8 @@ pub fn clean_up() -> Result<(), (Connection, rusqlite::Error)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs::File;
     use std::env;
+    use std::fs::File;
 
     #[test]
     fn test_validate_file() {
@@ -497,7 +475,7 @@ mod tests {
         assert!(validate_file(invalid_path.to_str().unwrap()).is_err());
 
         assert!(validate_file(env::temp_dir().to_str().unwrap()).is_err()); // It's a directory, not a file
-        
+
         fs::remove_file(&temp_path).unwrap();
     }
 }

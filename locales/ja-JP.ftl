@@ -136,3 +136,5 @@ button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
 downloading-update = Downloading update… # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 no-directory = Not found # TODO: Translate
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
+button-ok = OK # TODO: Translate

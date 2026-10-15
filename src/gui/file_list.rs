@@ -1,11 +1,10 @@
 use crate::{
-    config, gui, locale,
+    config, dialog, gui, locale,
     logic::{self, AssetInfo},
 };
 use egui::Color32;
 // Used for functionality
 use fluent_bundle::{FluentBundle, FluentResource};
-use native_dialog::{DialogBuilder, MessageLevel};
 use std::num::NonZero;
 use std::{
     sync::{Arc, LazyLock, Mutex},
@@ -63,35 +62,22 @@ fn double_click(
     }
 }
 
-fn extract_all_of_type(category: logic::Category, locale: &FluentBundle<Arc<FluentResource>>) {
-    let mut no = logic::get_list_task_running();
-
-    // Confirmation dialog, the program is still listing files
-    if no {
-        // NOT result, will become false if user clicks yes
-        no = !DialogBuilder::message()
-            .set_level(MessageLevel::Info)
-            .set_title(locale::get_message(
-                locale,
+fn extract_all_of_type(category: logic::Category) {
+    // Runs on its own thread so the dialogs don't block the GUI.
+    thread::spawn(move || {
+        // Confirmation dialog, the program is still listing files
+        if logic::get_list_task_running()
+            && !dialog::confirm_localised(
+                dialog::Level::Info,
                 "confirmation-filter-confirmation-title",
-                None,
-            ))
-            .set_text(locale::get_message(
-                locale,
                 "confirmation-filter-confirmation-description",
-                None,
-            ))
-            .confirm()
-            .show()
-            .unwrap();
-    }
-
-    // The user either agreed or the program is not listing files
-    if !no {
-        let option_path = DialogBuilder::file().open_single_dir().show().unwrap();
+            )
+        {
+            return;
+        }
 
         // If the user provides a directory, the program will extract the assets to that directory
-        if let Some(path) = option_path {
+        if let Some(path) = dialog::pick_folder() {
             logic::extract_dir(
                 path,
                 category,
@@ -99,55 +85,18 @@ fn extract_all_of_type(category: logic::Category, locale: &FluentBundle<Arc<Flue
                 config::get_config_bool("use_alias").unwrap_or(false),
             );
         }
-    }
-}
-fn toggle_swap(
-    swapping: &mut bool,
-    swapping_asset: &mut Option<AssetInfo>,
-    locale: &FluentBundle<Arc<FluentResource>>,
-) {
-    let mut warning_acknowledged = config::get_config_bool("ban-warning-ack").unwrap_or(false);
-
-    if !warning_acknowledged {
-        warning_acknowledged = DialogBuilder::message()
-            .set_level(MessageLevel::Info)
-            .set_title(locale::get_message(
-                locale,
-                "confirmation-ban-warning-title",
-                None,
-            ))
-            .set_text(locale::get_message(
-                locale,
-                "confirmation-ban-warning-description",
-                None,
-            ))
-            .confirm()
-            .show()
-            .unwrap();
-    }
-
-    if warning_acknowledged {
-        config::set_config_value("ban-warning-ack", warning_acknowledged.into());
-        if *swapping {
-            *swapping_asset = None;
-        }
-        *swapping = !*swapping;
-    }
+    });
 }
 
 fn extract_file_button(asset: logic::AssetInfo) {
-    let alias = config::get_asset_alias(&asset.name);
-    if let Some(destination) = native_dialog::DialogBuilder::file()
-        .set_filename(&alias)
-        .save_single_file()
-        .show()
-        .unwrap()
-    {
-        match logic::extract_to_file(asset, destination, false) {
-            Ok(_) => (),
-            Err(e) => log_critical!("{}", e),
+    thread::spawn(move || {
+        let alias = config::get_asset_alias(&asset.name);
+        if let Some(destination) = dialog::save_file(&alias) {
+            if let Err(e) = logic::extract_to_file(asset, destination, false) {
+                log_critical!("{}", e)
+            }
         }
-    }
+    });
 }
 
 /// Decode a preview into the texture cache. KTX goes through the GPU path.
@@ -226,62 +175,23 @@ fn load_asset_image(asset: AssetInfo, ctx: egui::Context) -> Option<gui::Preview
     None
 }
 
-fn clear_cache(locale: &FluentBundle<Arc<FluentResource>>) {
-    // Confirmation dialog
-    let yes = DialogBuilder::message()
-        .set_level(MessageLevel::Info)
-        .set_title(locale::get_message(
-            locale,
+fn clear_cache() {
+    thread::spawn(|| {
+        if dialog::confirm_localised(
+            dialog::Level::Info,
             "confirmation-clear-cache-title",
-            None,
-        ))
-        .set_text(locale::get_message(
-            locale,
             "confirmation-clear-cache-description",
-            None,
-        ))
-        .confirm()
-        .show()
-        .unwrap();
-
-    if yes {
-        gui::clear_image_cache();
-        logic::clear_cache();
-    }
+        ) {
+            gui::clear_image_cache();
+            logic::clear_cache();
+        }
+    });
 }
 
-fn toggle_swap_or_copy(
-    swapping_or_copying: &mut bool,
-    swapping_asset: &mut Option<AssetInfo>,
-    locale: &FluentBundle<Arc<FluentResource>>,
-) {
-    let mut warning_acknowledged = config::get_config_bool("ban-warning-ack").unwrap_or(false);
-
-    if !warning_acknowledged {
-        warning_acknowledged = DialogBuilder::message()
-            .set_level(MessageLevel::Info)
-            .set_title(locale::get_message(
-                locale,
-                "confirmation-ban-warning-title",
-                None,
-            ))
-            .set_text(locale::get_message(
-                locale,
-                "confirmation-ban-warning-description",
-                None,
-            ))
-            .confirm()
-            .show()
-            .unwrap();
-    }
-
-    if warning_acknowledged {
-        config::set_config_value("ban-warning-ack", warning_acknowledged.into());
-        if *swapping_or_copying {
-            *swapping_asset = None;
-        }
-        *swapping_or_copying = !*swapping_or_copying;
-    }
+#[derive(Clone, Copy)]
+enum EditMode {
+    Swap,
+    Copy,
 }
 
 // fn format_size(bytes: u64) -> String {
@@ -311,6 +221,7 @@ pub struct FileListUi {
     swapping_asset: Option<logic::AssetInfo>,
     asset_context_menu_open: Option<usize>,
     copying: bool,
+    pending_edit_mode: Option<(dialog::Pending<bool>, EditMode, Option<AssetInfo>)>, // Waiting on the ban warning
     pub locale: FluentBundle<Arc<FluentResource>>,
 }
 // selected: Option<usize>, // Used for storing selected state to retain keyboard navigation as seen in the tkinter version
@@ -335,6 +246,47 @@ pub struct FileListUi {
 // copying: &'a mut bool,
 
 impl FileListUi {
+    /// Toggle swapping/copying, showing the ban warning first if it hasn't been acknowledged.
+    fn toggle_edit_mode(&mut self, mode: EditMode, asset: Option<AssetInfo>) {
+        if config::get_config_bool("ban-warning-ack").unwrap_or(false) {
+            self.apply_edit_mode(mode, asset);
+        } else if self.pending_edit_mode.is_none() {
+            let pending = dialog::spawn(|| {
+                dialog::confirm_localised(
+                    dialog::Level::Warning,
+                    "confirmation-ban-warning-title",
+                    "confirmation-ban-warning-description",
+                )
+            });
+            self.pending_edit_mode = Some((pending, mode, asset));
+        }
+    }
+
+    fn apply_edit_mode(&mut self, mode: EditMode, asset: Option<AssetInfo>) {
+        let enabled = match mode {
+            EditMode::Swap => !self.swapping,
+            EditMode::Copy => !self.copying,
+        };
+        // Only one of the two at a time
+        self.swapping = enabled && matches!(mode, EditMode::Swap);
+        self.copying = enabled && matches!(mode, EditMode::Copy);
+        self.swapping_asset = if enabled { asset } else { None };
+    }
+
+    fn poll_pending_edit_mode(&mut self) {
+        let answer = match &self.pending_edit_mode {
+            Some((pending, _, _)) => pending.take(),
+            None => return,
+        };
+        if let Some(acknowledged) = answer {
+            let (_, mode, asset) = self.pending_edit_mode.take().unwrap();
+            if acknowledged {
+                config::set_config_value("ban-warning-ack", true.into());
+                self.apply_edit_mode(mode, asset);
+            }
+        }
+    }
+
     fn handle_text_edit(&mut self, ui: &mut egui::Ui, alias: &str, file_name: &str) {
         let mut mutable_name = alias.to_string();
         let response = egui::TextEdit::singleline(&mut mutable_name)
@@ -414,7 +366,7 @@ impl FileListUi {
             ))
             .clicked()
         {
-            clear_cache(&self.locale);
+            clear_cache();
             self.asset_context_menu_open = None;
         }
 
@@ -426,7 +378,7 @@ impl FileListUi {
             ))
             .clicked()
         {
-            extract_all_of_type(category, &self.locale);
+            extract_all_of_type(category);
             self.asset_context_menu_open = None;
         }
         if ui
@@ -440,27 +392,15 @@ impl FileListUi {
             .button(locale::get_message(&self.locale, "button-swap", None))
             .clicked()
         {
-            toggle_swap(&mut self.swapping, &mut self.swapping_asset, &self.locale);
+            self.toggle_edit_mode(EditMode::Swap, asset.clone());
             self.asset_context_menu_open = None;
-
-            if let Some(n) = asset.clone() {
-                self.swapping_asset = Some(n);
-            } else {
-                self.swapping_asset = None;
-            }
         }
         if ui
             .button(locale::get_message(&self.locale, "button-copy", None))
             .clicked()
         {
-            toggle_swap(&mut self.copying, &mut self.swapping_asset, &self.locale);
+            self.toggle_edit_mode(EditMode::Copy, asset.clone());
             self.asset_context_menu_open = None;
-
-            if let Some(n) = asset.clone() {
-                self.swapping_asset = Some(n);
-            } else {
-                self.swapping_asset = None;
-            }
         }
 
         if matches!(category, logic::Category::Images | logic::Category::Ktx) {
@@ -563,6 +503,8 @@ impl FileListUi {
             logic::refresh(category, false, false);
         }
 
+        self.poll_pending_edit_mode();
+
         let file_list = logic::get_file_list();
 
         let mut focus_search_box = false; // Focus the search box toggle for this frame
@@ -595,16 +537,12 @@ impl FileListUi {
         }
         if ui.input(|i| i.key_pressed(egui::Key::F3)) {
             // Extract all (F3)
-            extract_all_of_type(category, &self.locale);
+            extract_all_of_type(category);
         }
         if ui.input(|i| i.modifiers.ctrl && i.key_pressed(egui::Key::D)) {
             // Swap (Ctrl+D)
-            toggle_swap_or_copy(&mut self.swapping, &mut self.swapping_asset, &self.locale);
-            if let Some(i) = self.selected {
-                self.swapping_asset = file_list.get(i).cloned();
-            } else {
-                self.swapping_asset = None;
-            }
+            let asset = self.selected.and_then(|i| file_list.get(i).cloned());
+            self.toggle_edit_mode(EditMode::Swap, asset);
         }
         if ui.input(|i| i.modifiers.ctrl && i.key_pressed(egui::Key::E)) {
             // Ctrl+E (Extract)
@@ -626,18 +564,14 @@ impl FileListUi {
         if !self.renaming && !self.searching {
             if ui.input(|i| i.key_pressed(egui::Key::Delete)) {
                 // Clear cache (del)
-                clear_cache(&self.locale);
+                clear_cache();
             }
 
             if ui.input(|inp| inp.events.iter().any(|ev| matches!(ev, egui::Event::Copy))) {
                 // https://github.com/emilk/egui/issues/4065#issuecomment-2071047410
                 // Copy (Ctrl+C)
-                toggle_swap_or_copy(&mut self.copying, &mut self.swapping_asset, &self.locale);
-                if let Some(i) = self.selected {
-                    self.swapping_asset = file_list.get(i).cloned();
-                } else {
-                    self.swapping_asset = None;
-                }
+                let asset = self.selected.and_then(|i| file_list.get(i).cloned());
+                self.toggle_edit_mode(EditMode::Copy, asset);
             }
         }
 
@@ -1087,6 +1021,7 @@ impl Default for FileListUi {
             locale: locale::get_locale(None),
             asset_context_menu_open: None,
             copying: false,
+            pending_edit_mode: None,
         }
     }
 }

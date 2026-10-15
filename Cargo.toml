@@ -10,6 +10,7 @@ eframe = { features = ["default_fonts", "x11", "glow"], default-features = false
 egui = { default-features = false, version = "0.32" }
 egui_commonmark = { default-features = false, version = "0.21.1" }
 egui_dock = "0.17.0"
+egui-file-dialog = { version = "0.11.0", default-features = false }
 filetime = "0.2.25"
 fluent-bundle = { version = "0.16.0", default-features = false }
 hex = "0.4.3"

@@ -221,6 +221,13 @@ pub fn resolve_path(directory: &str) -> String {
     resolved_path
 }
 
+/// Detect the cache directory and open the database now rather than on first use.
+pub fn init_sources() {
+    cache_directory::get_cache_directory();
+    sql_database::get_db_path();
+    rbx_storage_directory::get_rbx_storage_dir();
+}
+
 // Function to get temp directory, create it if it doesn't exist
 pub fn get_temp_dir() -> PathBuf {
     return TEMP_DIRECTORY.lock().unwrap().clone();

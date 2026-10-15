@@ -13,6 +13,7 @@ about = aobut
 logs = loges
 
 # Buttons
+button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
 button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate
 button-reset-sql-db = reset slq databsae
@@ -119,6 +120,7 @@ swapped = swaopped { $item_a } with { $item_b }
 copied = overwriten { $item_b } with { $item_a }
 
 # Misc
+dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
 no-directory = Not found # TODO: Translate
 rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate
 sql-database = slq datbase: { $path }

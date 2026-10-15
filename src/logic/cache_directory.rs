@@ -5,6 +5,7 @@ use fluent_bundle::{FluentArgs, FluentBundle, FluentResource};
 use std::sync::{Arc, LazyLock};
 
 use crate::config;
+use crate::dialog;
 use crate::locale;
 use crate::logic::{self, determine_category};
 
@@ -91,50 +92,28 @@ pub fn detect_directory() -> PathBuf {
     }
 
     // If it was unable to detect any directory, tell the user
-    let _ = native_dialog::DialogBuilder::message()
-        .set_level(native_dialog::MessageLevel::Error)
-        .set_title(locale::get_message(
-            &locale::get_locale(None),
-            "error-directory-detection-title",
-            None,
-        ))
-        .set_text(locale::get_message(
-            &locale::get_locale(None),
-            "error-directory-detection-description",
-            None,
-        ))
-        .alert()
-        .show();
+    let locale = locale::get_locale(None);
+    dialog::alert(
+        dialog::Level::Error,
+        &locale::get_message(&locale, "error-directory-detection-title", None),
+        &locale::get_message(&locale, "error-directory-detection-description", None),
+    );
 
-    let yes = native_dialog::DialogBuilder::message()
-        .set_level(native_dialog::MessageLevel::Error)
-        .set_title(locale::get_message(
-            &locale::get_locale(None),
-            "confirmation-custom-directory-title",
-            None,
-        ))
-        .set_text(locale::get_message(
-            &locale::get_locale(None),
-            "confirmation-custom-directory-description",
-            None,
-        ))
-        .confirm()
-        .show()
-        .unwrap();
+    let yes = dialog::confirm(
+        dialog::Level::Error,
+        &locale::get_message(&locale, "confirmation-custom-directory-title", None),
+        &locale::get_message(&locale, "confirmation-custom-directory-description", None),
+    );
 
     if yes {
-        let option_path = native_dialog::DialogBuilder::file()
-            .open_single_dir()
-            .show()
-            .unwrap();
-        if let Some(path) = option_path {
-            config::set_config_value(
-                "cache_directory",
-                validate_directory(path.to_string_lossy().as_ref())
-                    .unwrap()
-                    .into(),
-            );
-            return detect_directory();
+        if let Some(path) = dialog::pick_folder() {
+            match validate_directory(path.to_string_lossy().as_ref()) {
+                Ok(directory) => {
+                    config::set_config_value("cache_directory", directory.into());
+                    return detect_directory();
+                }
+                Err(e) => log_critical!("Directory detection failed! {}", e),
+            }
         } else {
             log_critical!("Directory detection failed! {}", errors);
         }
@@ -426,7 +405,7 @@ mod tests {
         file_path.push("roextract_test_file");
         File::create(&file_path).unwrap();
         assert!(validate_directory(file_path.to_str().unwrap()).is_err()); // It's a file, not a directory
-        
+
         fs::remove_file(&file_path).unwrap();
     }
 }
