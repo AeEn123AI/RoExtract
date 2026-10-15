@@ -13,6 +13,7 @@ about = Of This Matter
 logs = Chronicles  
 
 # Buttons
+button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
@@ -85,7 +86,8 @@ contributors = Scribes and Artisans
 dependencies = That Which is Required  
 behavior = The Nature of Things  
 
-# Checkboxes  
+# Checkboxes
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate  
 check-for-updates = Seek Tidings of Change  
 automatically-install-updates = Set Forth Changes Without Bidding  
 use-alias = Bestow New Names Upon Thy Scrolls  
@@ -118,7 +120,9 @@ stage = Stage { $stage }/{ $max }: { $status }
 swapped = Exchanged { $item_a } with { $item_b }  
 copied = Overwrote { $item_b } with { $item_a }  
 
-# Error Statuses  
+# Error Statuses
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate  
 failed-deleting-file = WOE! Could Not Cast Away ({ $item }/{ $total })  
 failed-opening-file = WOE! Could Not Unseal: { $error }  
 failed-not-file = WOE! '{ $file }' Is No True Scroll  

@@ -144,3 +144,7 @@ column-modified = Modified # TODO: Translate
 column-name = Name # TODO: Translate
 column-created = Created # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
+button-play = Play <Space> # TODO: Translate

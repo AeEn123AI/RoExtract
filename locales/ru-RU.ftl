@@ -12,6 +12,7 @@ about = О нас
 logs = Журналы
 
 # Buttons
+button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
@@ -85,6 +86,7 @@ dependencies = Зависимости
 behavior = Поведение
 
 # Checkboxes
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 check-for-updates = Проверить наличие обновлений
 automatically-install-updates = Автоматически устанавливать обновления
 use-alias = Экспортировать переименованные файлы
@@ -120,6 +122,8 @@ swapped = { $item_a } заменён на { $item_b }
 copied = { $item_b } перезаписан файлом { $item_a }
 
 # Error Statuses
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate
 failed-deleting-file = ОШИБКА: Не удалось удалить ({ $item }/{ $total })
 failed-opening-file = ОШИБКА: Не удалось открыть файл
 failed-not-file = ОШИБКА: '{ $file }' Не файл

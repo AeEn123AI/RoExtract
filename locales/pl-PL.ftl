@@ -12,6 +12,7 @@ settings = Ustawienia
 about = Informacje
 
 # Buttons
+button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
@@ -85,6 +86,7 @@ dependencies = Zależności
 behavior = Zachowanie
 
 # Checkboxes
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 checkbox-hide-user-logs = Ukryj nazwę użytkownika z dziennika
 download-development-build = Używaj wersji deweloperskich, aby wcześniej otrzymywać nowe funkcje (Te wersje mogą być niestabilne)
 refresh-before-extract = Odśwież listę plików przed wyodrębnieniem
@@ -119,6 +121,8 @@ all-extracted = Wszystkie pliki zostały wyodrębnione.
 stage = Etap { $stage }/{ $max }: { $status }
 
 # Error Statuses
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate
 failed-deleting-file = BŁĄD: Nie udało się usunąć ({ $item }/{ $total })
 failed-opening-file = BŁĄD: Nie udało się otworzyć pliku: { $error }
 failed-not-file = BŁĄD: '{ $file }' Nie jest plikiem.

@@ -13,6 +13,7 @@ about = aobut
 logs = loges
 
 # Buttons
+button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
@@ -86,6 +87,7 @@ dependencies = depenceinses
 behavior = beahvior
 
 # Checkboxes
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 check-for-updates = chek ofr udopates
 automatically-install-updates = autyom,atically insatll upodates
 use-alias = epxort your rneamved filesnmaes
@@ -145,3 +147,5 @@ column-type = Type # TODO: Translate
 column-modified = Modified # TODO: Translate
 column-name = Name # TODO: Translate
 column-created = Created # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate

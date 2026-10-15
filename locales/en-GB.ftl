@@ -34,6 +34,7 @@ button-export-logs = Export log to file
 button-copy = Copy <Ctrl+C>
 button-open = Open <Return>
 button-extract-file = Extract <Ctrl+E>
+button-play = Play <Space>
 button-display-image-preview = Display image previews
 button-disable-display-image-preview = Stop displaying image previews
 input-preview-size = Preview size
@@ -96,6 +97,7 @@ automatically-install-updates = Automatically install updates
 use-alias = Export your renamed filenames
 use-topbar-buttons = Enable toolbar
 refresh-before-extract = Refresh file list before extracting
+use-builtin-player = Play sounds in the built-in player when opening them
 download-development-build = Use development builds to get the latest features early (These builds may be unstable)
 checkbox-hide-user-logs = Hide username from logs
 
@@ -131,6 +133,8 @@ failed-opening-file = ERROR: Failed to open file
 failed-not-file = ERROR: '{ $file }' Not a file
 error-extracting-file = ERROR: Failed to extract: { $error }
 error-check-logs = ERROR: Check logs for more details.
+player-failed = Couldn't play this file, check logs for more details.
+player-no-device = No audio output device was found.
 
 # Misc
 no-function = (Not functional yet)

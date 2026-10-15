@@ -261,6 +261,16 @@ pub fn behavior(ui: &mut egui::Ui, locale: &FluentBundle<Arc<FluentResource>>) {
         config::set_config_value("refresh_before_extract", refresh_before_extract.into());
     }
 
+    let old = config::get_config_bool("use_builtin_player").unwrap_or(true);
+    let mut use_builtin_player = old;
+    ui.checkbox(
+        &mut use_builtin_player,
+        locale::get_message(locale, "use-builtin-player", None),
+    );
+    if use_builtin_player != old {
+        config::set_config_value("use_builtin_player", use_builtin_player.into());
+    }
+
     let old = config::get_config_bool("use_topbar_buttons").unwrap_or(true);
     let mut use_topbar_buttons = old;
     ui.checkbox(

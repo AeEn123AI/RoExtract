@@ -1,3 +1,4 @@
+use super::player;
 use crate::{
     config, dialog, gui, locale,
     logic::{self, AssetInfo},
@@ -196,6 +197,13 @@ enum EditMode {
     Copy,
 }
 
+fn is_audio(asset: &AssetInfo) -> bool {
+    matches!(
+        asset.category,
+        logic::Category::Music | logic::Category::Sounds
+    ) || matches!(asset.format, Some("ogg" | "mp3"))
+}
+
 /// Assets whose name or alias contains `query` (lowercase), case-insensitively.
 fn filter_assets(assets: &[AssetInfo], query: &str) -> Vec<AssetInfo> {
     assets
@@ -233,10 +241,45 @@ pub struct FileListUi {
     copying: bool,
     view: ListView,
     table: table::TableLayout,
+    player: player::Player,
     pending_edit_mode: Option<(dialog::Pending<bool>, EditMode, Option<AssetInfo>)>, // Waiting on the ban warning
     pub locale: FluentBundle<Arc<FluentResource>>,
 }
 impl FileListUi {
+    /// Double click/Enter/Open: swap or copy when in those modes, otherwise
+    /// play sounds in the built-in player or open the file externally.
+    fn open_asset(&mut self, asset: AssetInfo) {
+        if !self.swapping
+            && !self.copying
+            && is_audio(&asset)
+            && config::get_config_bool("use_builtin_player").unwrap_or(true)
+        {
+            self.player.play(asset);
+        } else {
+            double_click(
+                asset,
+                &mut self.swapping,
+                &mut self.copying,
+                &mut self.swapping_asset,
+            );
+        }
+    }
+
+    /// While something is playing, play whatever gets selected instead.
+    fn preview_selection(&mut self, file_list: &[AssetInfo]) {
+        let Some(asset) = self.selected.and_then(|i| file_list.get(i)) else {
+            return;
+        };
+        let changed = self
+            .player
+            .current()
+            .is_some_and(|current| current.name != asset.name);
+        if changed && self.player.is_playing() && is_audio(asset) && !self.swapping && !self.copying
+        {
+            self.player.play(asset.clone());
+        }
+    }
+
     /// Toggle swapping/copying, showing the ban warning first if it hasn't been acknowledged.
     fn toggle_edit_mode(&mut self, mode: EditMode, asset: Option<AssetInfo>) {
         if config::get_config_bool("ban-warning-ack").unwrap_or(false) {
@@ -370,12 +413,15 @@ impl FileListUi {
                 .button(locale::get_message(&self.locale, "button-open", None))
                 .clicked()
             {
-                double_click(
-                    asset.clone(),
-                    &mut self.swapping,
-                    &mut self.copying,
-                    &mut self.swapping_asset,
-                );
+                self.open_asset(asset.clone());
+                self.asset_context_menu_open = None;
+            }
+            if is_audio(&asset)
+                && ui
+                    .button(locale::get_message(&self.locale, "button-play", None))
+                    .clicked()
+            {
+                self.player.play(asset.clone());
                 self.asset_context_menu_open = None;
             }
             if ui
@@ -515,12 +561,7 @@ impl FileListUi {
         }
 
         if response.double_clicked() {
-            double_click(
-                asset,
-                &mut self.swapping,
-                &mut self.copying,
-                &mut self.swapping_asset,
-            );
+            self.open_asset(asset);
         }
 
         // Handle keyboard scrolling
@@ -604,6 +645,15 @@ impl FileListUi {
 
         // Shortcuts to deactivate during text entry
         if !self.renaming && !self.searching {
+            if ui.input(|i| i.key_pressed(egui::Key::Space)) {
+                // Play/pause (Space)
+                let selected = self
+                    .selected
+                    .and_then(|i| file_list.get(i))
+                    .filter(|asset| is_audio(asset))
+                    .cloned();
+                self.player.toggle(selected);
+            }
             if ui.input(|i| i.key_pressed(egui::Key::Delete)) {
                 // Clear cache (del)
                 clear_cache();
@@ -628,6 +678,12 @@ impl FileListUi {
                     });
                 })
             });
+        }
+
+        // Player bar along the bottom, once something has been played
+        if self.player.is_visible() {
+            egui::TopBottomPanel::bottom("player")
+                .show_inside(ui, |ui| self.player.ui(ui, &self.locale));
         }
 
         // Empty state
@@ -780,12 +836,7 @@ impl FileListUi {
                 if let Some(selected) = self.selected {
                     // Get file name after getting the selected value
                     if let Some(asset) = file_list.get(selected) {
-                        double_click(
-                            asset.clone(),
-                            &mut self.swapping,
-                            &mut self.copying,
-                            &mut self.swapping_asset,
-                        );
+                        self.open_asset(asset.clone());
                     }
                 }
             }
@@ -974,6 +1025,8 @@ impl FileListUi {
             // If the keyboard navigation wasn't accepted and there is keyboard navigation then...
             self.selected = None; // Set the selected to none, so it selects something on-screen
         }
+
+        self.preview_selection(&file_list);
     }
 }
 
@@ -992,6 +1045,7 @@ impl Default for FileListUi {
             copying: false,
             view: ListView::default(),
             table: table::TableLayout::load(),
+            player: player::Player::default(),
             pending_edit_mode: None,
         }
     }

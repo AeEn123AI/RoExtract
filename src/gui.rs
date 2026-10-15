@@ -14,6 +14,7 @@ use eframe::egui::TextureHandle;
 
 mod file_list;
 mod ktx_preview;
+mod player;
 mod settings;
 mod welcome;
 
@@ -29,7 +30,7 @@ const CONTRIBUTORS: [&str; 7] = [
     "IDDQD1337",
     "yuk1n0w",
 ];
-const DEPENDENCIES: [[&str; 2]; 14] = [
+const DEPENDENCIES: [[&str; 2]; 16] = [
     ["https://github.com/emilk/egui", ""],
     ["https://github.com/Adanos020/egui_dock", ""],
     ["https://github.com/lampsitter/egui_commonmark", ""],
@@ -44,6 +45,8 @@ const DEPENDENCIES: [[&str; 2]; 14] = [
     ["https://github.com/Peternator7/strum", ""],
     ["https://github.com/chronotope/chrono", ""],
     ["https://github.com/image-rs/image", ""],
+    ["https://github.com/RustAudio/rodio", ""],
+    ["https://github.com/jannistpl/egui-file-dialog", ""],
 ];
 
 /// VRAM budget for cached previews (~64 MB).

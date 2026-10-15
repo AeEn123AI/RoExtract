@@ -13,6 +13,7 @@ about = 关于
 logs = 日志
 
 # Buttons
+button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
@@ -86,6 +87,7 @@ dependencies = 依赖项
 behavior = 可选项
 
 # Checkboxes
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate
 check-for-updates = 检查更新
 automatically-install-updates = 自动安装更新
 use-alias = 导出您重命名的文件名
@@ -143,3 +145,5 @@ column-type = Type # TODO: Translate
 column-modified = Modified # TODO: Translate
 column-name = Name # TODO: Translate
 column-created = Created # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate

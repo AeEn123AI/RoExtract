@@ -13,6 +13,7 @@ about = 'Bout This Vessel
 logs = Ship’s Log  
 
 # Buttons
+button-play = Play <Space> # TODO: Translate
 button-reset-columns = Reset columns # TODO: Translate
 button-ok = OK # TODO: Translate
 button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
@@ -85,7 +86,8 @@ contributors = Loyal Crew
 dependencies = Ship’s Riggings  
 behavior = How the Crew Acts  
 
-# Checkboxes  
+# Checkboxes
+use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate  
 check-for-updates = Keep an Eye on the Horizon  
 automatically-install-updates = Let the Crew Handle Updates  
 use-alias = Mark Ye Plunder with Custom Names  
@@ -118,7 +120,9 @@ stage = Stage { $stage }/{ $max }: { $status }
 swapped = Traded { $item_a } for { $item_b }  
 copied = Overwritten { $item_b } with { $item_a }  
 
-# Error Statuses  
+# Error Statuses
+player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
+player-no-device = No audio output device was found. # TODO: Translate  
 failed-deleting-file = ERROR: Couldn’t Toss ({ $item }/{ $total }) Overboard!  
 failed-opening-file = ERROR: Couldn’t Crack Open the Chest: { $error }  
 failed-not-file = ERROR: '{ $file }' Ain’t Proper Booty!  
