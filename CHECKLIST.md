@@ -84,7 +84,7 @@ Fixed missing localisation files in English and German (Thanks to @Vonercent)
 
 ## 1.1.0
 - [x] - Fallback to an egui-based dialog (e.g. via a compatible crate) when native_dialog is unavailable/missing-dep (e.g. headless or systems without zenity/kdialog). Currently `sql_database.rs` `.unwrap()`s the native_dialog result, which panics and aborts the entire `refresh` scan when no SQL database is detected without a fallback UI.
-- [ ] - Rewrite in listing - independent lists for each type
+- [x] - Rewrite in listing - independent lists for each type
 - [ ] - Split cache_directory.rs into two files
 - [ ] - Hande file list filtering in file_list.rs instead
 - [ ] - Built-in media player to quickly preview sounds

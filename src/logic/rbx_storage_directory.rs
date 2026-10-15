@@ -161,7 +161,7 @@ pub fn refresh(
                         category
                     };
                     let asset_info = create_asset_info(hash.clone(), &path, detected_category);
-                    logic::update_file_list(asset_info, cli_list_mode);
+                    logic::update_file_list(category, asset_info, cli_list_mode);
                     break;
                 }
             }

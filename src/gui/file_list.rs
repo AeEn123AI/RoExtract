@@ -492,34 +492,25 @@ impl FileListUi {
             _ => logic::Category::All,
         };
 
-        // Detect if tab changed and do a refresh if so
-        if let Some(current_tab) = &self.current_tab {
-            if current_tab != &tab {
-                self.current_tab = Some(tab.to_owned());
+        // Detect if tab changed and do a refresh if so. Lists already loaded stay
+        // on screen while the new one is made.
+        if self.current_tab.as_ref() != Some(&tab) {
+            self.current_tab = Some(tab.to_owned());
+            self.selected = None;
+            if logic::is_list_loaded(category) {
+                logic::refresh_in_background(category);
+            } else {
                 logic::refresh(category, false, false);
             }
-        } else {
-            self.current_tab = Some(tab.to_owned());
-            logic::refresh(category, false, false);
         }
 
         self.poll_pending_edit_mode();
 
-        let file_list = logic::get_file_list();
+        let file_list = logic::get_file_list(category);
 
         let mut focus_search_box = false; // Focus the search box toggle for this frame
 
-        let file_list_is_empty = {
-            file_list.is_empty()
-                || (
-                    file_list.len() == 1
-                // The "No files to list" asset shows as from none of these
-                && !file_list[0].from_file
-                && !file_list[0].from_sql
-                && !file_list[0].from_rbx_storage
-                    // TODO: Maybe I should make this an enum...
-                )
-        };
+        let file_list_is_empty = file_list.is_empty() && !logic::is_listing(category);
 
         // Handle key shortcuts here
         if ui.input(|i| i.key_pressed(egui::Key::F2)) {
@@ -658,7 +649,7 @@ impl FileListUi {
             }
 
             if self.search_query != old_search_query {
-                logic::filter_file_list(self.search_query.clone());
+                logic::filter_file_list(category, self.search_query.clone());
             }
             logic::get_filtered_file_list()
         } else {
@@ -846,14 +837,10 @@ impl FileListUi {
                                             egui::Sense::click(),
                                         );
 
-                                        // Only attempt to load if it's a real asset
-                                        if asset.from_file | asset.from_sql | asset.from_rbx_storage
+                                        if let Some(texture) =
+                                            load_asset_image(asset.clone(), ui.ctx().clone())
                                         {
-                                            if let Some(texture) =
-                                                load_asset_image(asset.clone(), ui.ctx().clone())
-                                            {
-                                                texture.paint(ui, rect);
-                                            }
+                                            texture.paint(ui, rect);
                                         }
 
                                         let visuals = ui.visuals();

@@ -266,7 +266,10 @@ pub fn refresh(
                 match result {
                     Ok(entries) => {
                         for entry in entries.flatten() {
-                            logic::update_file_list(entry, cli_list_mode);
+                            if logic::get_stop_list_running() {
+                                break; // Stop if another thread requests to stop this task.
+                            }
+                            logic::update_file_list(category, entry, cli_list_mode);
                         }
                     }
                     Err(e) => log_error!("{}", e),

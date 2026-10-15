@@ -255,10 +255,6 @@ pub fn refresh(
     let total = entries.len();
     let mut count = 0;
 
-    // Tell the user that there is no files to list to make it easy to tell that the program is working and it isn't broken
-    if total == 0 {
-        logic::update_file_list(logic::create_no_files(locale), cli_list_mode);
-    }
     // Filter the files out
     for entry in entries {
         if logic::get_stop_list_running() {
@@ -281,6 +277,7 @@ pub fn refresh(
 
                 if category == &logic::Category::Music {
                     logic::update_file_list(
+                        *category,
                         create_asset_info_unchecked(&path, *category),
                         cli_list_mode,
                     );
@@ -305,7 +302,7 @@ pub fn refresh(
                                 } else {
                                     create_asset_info_unchecked(&path, *category)
                                 };
-                                logic::update_file_list(asset_info, cli_list_mode);
+                                logic::update_file_list(*category, asset_info, cli_list_mode);
                                 break; // Stop after the first match so a file isn't listed twice
                             }
                         }
