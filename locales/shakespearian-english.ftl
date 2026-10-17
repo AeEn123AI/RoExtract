@@ -13,12 +13,12 @@ about = Of This Matter
 logs = Chronicles  
 
 # Buttons
-button-convert = Convert to # TODO: Translate
-button-play = Play <Space> # TODO: Translate
-button-reset-columns = Reset columns # TODO: Translate
-button-ok = OK # TODO: Translate
-button-reset-rbx-storage-dir = Reset rbx-storage Directory # TODO: Translate
-button-change-rbx-storage-dir = Change rbx-storage Directory # TODO: Translate  
+button-convert = Transmute Into # AI translated
+button-play = Let It Be Heard <Space> # AI translated
+button-reset-columns = Restore the Columns to Their Former State # AI translated
+button-ok = So Be It # AI translated
+button-reset-rbx-storage-dir = Restore the rbx-storage Folder to Its Former State # AI translated
+button-change-rbx-storage-dir = Amend the rbx-storage Folder # AI translated
 button-reset-sql-db = Restore the Scroll of Tables to Its Pristine State  
 button-change-sql-db = Choose Another Scroll of Tables  
 button-delete-this-dir = Cast This Folder into Oblivion <Del>  
@@ -44,8 +44,8 @@ button-disable-display-image-preview = Cease the Foretelling of Painted Likeness
 input-preview-size = Measure of Foretelling  
 
 # Confirmations
-confirmation-custom-sql-title = Choose a SQL Database # TODO: Translate
-confirmation-custom-sql-description = Do you want to choose a different SQL Database? # TODO: Translate  
+confirmation-custom-sql-title = Choose a Scroll of Tables # AI translated
+confirmation-custom-sql-description = Wouldst thou choose another Scroll of Tables? # AI translated
 confirmation-generic-confirmation-title = A Moment of Certainty  
 confirmation-delete-confirmation-title = The Banishment of Scrolls  
 confirmation-delete-confirmation-description = Art thou certain thou dost wish to cast all scrolls in this chamber into oblivion?  
@@ -78,8 +78,8 @@ error-invalid-directory-description = Pray, ensure that the path thou hast given
 generic-error-critical = A Most Dire Misfortune!  
 
 # Headings
-conversion = Format conversion # TODO: Translate
-downloading-update = Downloading update… # TODO: Translate  
+conversion = Transmutation of Forms # AI translated
+downloading-update = The new edition doth arrive… # AI translated
 actions = Deeds  
 updates = Tidings of Change  
 language-settings = The Tongue’s Edicts  
@@ -89,11 +89,11 @@ dependencies = That Which is Required
 behavior = The Nature of Things  
 
 # Checkboxes
-enable-conversion = Enable format conversion # TODO: Translate
-audio-format = Audio # TODO: Translate
-convert-on-extract = Convert assets when extracting # TODO: Translate
-image-format = Images and textures # TODO: Translate
-use-builtin-player = Play sounds in the built-in player when opening them # TODO: Translate  
+enable-conversion = Permit the transmutation of forms # AI translated
+audio-format = Tones # AI translated
+convert-on-extract = Transmute possessions as they are taken forth # AI translated
+image-format = Likenesses and Textures # AI translated
+use-builtin-player = Play tones upon the minstrel within when they are opened # AI translated
 check-for-updates = Seek Tidings of Change  
 automatically-install-updates = Set Forth Changes Without Bidding  
 use-alias = Bestow New Names Upon Thy Scrolls  
@@ -103,8 +103,8 @@ download-development-build = Partake of Unfinished Labors to Glimpse the Future 
 checkbox-hide-user-logs = Conceal the Name of the User from the Chronicles  
 
 # Descriptions
-conversion-description = Convert assets to more common formats. When enabled, a "Convert to" option is added to the right click menu, and assets can be converted as they are extracted. If an asset can't be converted, it is extracted as it is. # TODO: Translate
-custom-rbx-storage-dir-description = If you want to use a different rbx-storage directory, change it below. You can reset it back to the default with the other button. # TODO: Translate  
+conversion-description = Transmute thy possessions into forms more commonly known. When permitted, a "Transmute Into" choice is added to the menu of the right hand, and possessions may be transmuted as they are taken forth. Should a possession resist transmutation, it shall be taken forth as it is. # AI translated
+custom-rbx-storage-dir-description = Shouldst thou wish to use another rbx-storage folder, amend it below. Thou mayst restore it to its former state with the other button. # AI translated
 custom-sql-db-description = Shouldst thou desire to consult another scroll of tables, alter the path below. It may yet be restored to its default with a simple click. Mark thee well, this is not thy installation vault.  
 clear-cache-description = If thy listing of scrolls taketh too long, and the retrieval is sluggish, thou mayest cleanse thy cache with the button below. The scrolls shall be reborn when next thou summoneth Roblox.  
 extract-all-description = The button below shall copy all relics and sort them into proper chambers, such as /harmonious_tones, /painted_likenesses. Thou mayest select the root chamber ere beginning.  
@@ -128,8 +128,8 @@ swapped = Exchanged { $item_a } with { $item_b }
 copied = Overwrote { $item_b } with { $item_a }  
 
 # Error Statuses
-player-failed = Couldn't play this file, check logs for more details. # TODO: Translate
-player-no-device = No audio output device was found. # TODO: Translate  
+player-failed = Alas, this file could not be played. Consult the Chronicles for further detail. # AI translated
+player-no-device = No instrument for the ear was found. # AI translated
 failed-deleting-file = WOE! Could Not Cast Away ({ $item }/{ $total })  
 failed-opening-file = WOE! Could Not Unseal: { $error }  
 failed-not-file = WOE! '{ $file }' Is No True Scroll  
@@ -137,9 +137,9 @@ error-extracting-file = WOE! Could Not Retrieve: { $error }
 error-check-logs = WOE! Look to the Chronicles for Further Ills.  
 
 # Misc
-dialog-enter-path = Enter a path (leave blank to cancel): # TODO: Translate
-no-directory = Not found # TODO: Translate
-rbx-storage-directory = rbx-storage Directory: { $directory } # TODO: Translate  
+dialog-enter-path = Inscribe a path (leave it bare to forsake this): # AI translated
+no-directory = Not found, alas # AI translated
+rbx-storage-directory = rbx-storage Folder: { $directory } # AI translated
 sql-database = Scroll of Tables: { $path }  
 no-function = (Yet It Doth Not Work)  
 version = Edition: v{ $version } (compiled upon { $date })  
@@ -151,9 +151,9 @@ support-sponsor = ♥ A Patron Most Kind
 support-project-donate = ♥ Bestow Thy Gift Upon This Labor  
 setting-below-restart-required = Take Heed! A Change in This Setting Shall Require a Restart for It to Take Hold.
 
-column-size = Size # TODO: Translate
-column-type = Type # TODO: Translate
-column-modified = Modified # TODO: Translate
-column-name = Name # TODO: Translate
-column-created = Created # TODO: Translate
-column-length = Length # TODO: Translate
+column-size = Magnitude # AI translated
+column-type = Kind # AI translated
+column-modified = Last Altered # AI translated
+column-name = Name # AI translated
+column-created = Wrought # AI translated
+column-length = Duration # AI translated

@@ -29,7 +29,7 @@ There is no `opencode.json` and no other instruction files in the repo; this is 
 
 - `build.rs` runs at compile time and generates `$OUT_DIR/locale_data.rs`, which `src/locale.rs` includes via `include!(concat!(env!("OUT_DIR"), "/locale_data.rs"))`. It bundles every `locales/*.ftl` file into a `get_locale_resources` function and a `LOCALES` const array. Any change to `locales/` is picked up automatically — `build.rs` emits `cargo:rerun-if-changed` per locale file.
 - `build.rs` also embeds `COMPILE_DATE` as a rustc env var (used in the About tab) and, on Windows only, compiles `assets/icon.ico` into the binary's resources and sets the `asInvoker` manifest.
-- Adding a new locale: drop a new `locales/<tag>.ftl` file (Fluent syntax). No other registration needed; `build.rs` picks it up. To sync missing keys into all other locales from `en-GB.ftl`, run `python3 locale_sync.py` (adds `# TODO: Translate` markers).
+- Adding a new locale: drop a new `locales/<tag>.ftl` file (Fluent syntax). No other registration needed; `build.rs` picks it up. To sync missing keys into all other locales from `en-GB.ftl`, run `python3 locale_sync.py` (adds `# TODO: Translate` markers). Machine-translated strings are marked `# AI translated` instead, so human translators can find and check them. `locale::get_message` strips both labels; `test_all_locales_parse_and_hide_labels` checks every locale parses, has every `en-GB` key and never shows a label.
 
 ## README.md is generated
 
